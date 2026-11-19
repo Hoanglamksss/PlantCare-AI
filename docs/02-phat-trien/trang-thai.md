@@ -13,6 +13,8 @@
 
 ## Bằng chứng
 
+- 20/11: thêm `backend/start-render.sh` vào image. Trên Render, đặt Docker Command là `/bin/sh /app/start-render.sh` để migration thành công trước khi mở HTTP, tránh phụ thuộc cách Render xử lý dấu nháy. Kiểm tra runtime trên Render cần xem log lần deploy tiếp theo.
+
 - Git local dùng nhánh `main`, remote `origin` trỏ [Hoanglamksss/PlantCare-AI](https://github.com/Hoanglamksss/PlantCare-AI). Bí mật `.secrets/`, `.env*`, bản sao lưu, thư viện và kết quả build được loại khỏi Git.
 
 - Root xác nhận frontend/backend TypeScript, build Docker và `smoke-local.mjs` đạt trên Compose local; đã áp dụng migration `0001`–`0011`.

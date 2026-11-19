@@ -13,6 +13,7 @@ COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY migrations ./migrations
+COPY --chmod=0555 start-render.sh /app/start-render.sh
 COPY --chmod=0555 docker-entrypoint.sh /usr/local/bin/plantcare-entrypoint
 USER node
 EXPOSE 3000
