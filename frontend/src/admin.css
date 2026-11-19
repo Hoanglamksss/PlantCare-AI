@@ -1,0 +1,25 @@
+.admin-page { max-width: 65rem; margin-inline: auto; }
+.admin-back { display: inline-flex; align-items: center; gap: .4rem; color: var(--green); margin-bottom: 1.1rem; font-size: .85rem; text-decoration: none; }
+.admin-page .filters button { display: inline-flex; gap: .45rem; align-items: center; }
+.admin-search { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .65rem; margin: 1.4rem 0; max-width: 38rem; }
+.admin-table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 1.2rem; }
+.admin-table-wrap table { width: 100%; border-collapse: collapse; font-size: .83rem; text-align: left; }
+.admin-table-wrap th { padding: 1rem; color: var(--muted); background: var(--pale-green); font-weight: 600; white-space: nowrap; }
+.admin-table-wrap td { padding: 1rem; border-top: 1px solid var(--border); }
+.admin-table-wrap td strong, .admin-table-wrap td small { display: block; }
+.admin-table-wrap td small { margin-top: .25rem; color: var(--muted); }
+.admin-status { display: inline-block; border-radius: 999px; padding: .3rem .7rem; background: var(--pale-green); color: var(--green); font-size: .72rem; white-space: nowrap; }
+.admin-status[data-disabled='true'] { background: var(--pale-amber); color: #805b20; }
+.admin-posts { display: grid; gap: 1rem; }
+.admin-post { padding: 1.3rem; background: var(--surface); border: 1px solid var(--border); border-radius: 1.3rem; }
+.admin-post header { display: flex; align-items: start; gap: 1rem; justify-content: space-between; }
+.admin-post h2 { font-size: 1.1rem; }
+.admin-post header p { margin-top: .45rem; font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; }
+.admin-post-note { margin-top: 1rem; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .9rem; }
+.admin-post footer { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: 1rem; }
+.admin-post time { font-size: .75rem; color: var(--muted); }
+.admin-post .button { font-size: .8rem; }
+.admin-empty { padding: 1.5rem; color: var(--muted); }
+.admin-confirm-copy { margin-bottom: 1.3rem; overflow-wrap: anywhere; }
+.header-admin-link { display: inline-grid; place-items: center; min-width: 2.65rem; height: 2.65rem; color: var(--green); border-radius: .9rem; background: var(--pale-green); }
+@media (max-width: 40rem) { .admin-post header { flex-wrap: wrap; } .admin-post { padding: 1rem; } }

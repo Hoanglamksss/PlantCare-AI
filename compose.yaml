@@ -1,0 +1,180 @@
+name: plantcare-ai
+
+x-logs: &logs
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
+x-api-image: &api-image
+  build: ./backend
+  init: true
+  security_opt:
+    - no-new-privileges:true
+  logging: *logs
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - '127.0.0.1:8080:8080'
+    depends_on:
+      backend:
+        condition: service_healthy
+        restart: true
+    networks: [edge]
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.5
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8080/health/ready]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    logging: *logs
+
+  backend:
+    <<: *api-image
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      PORT: '3000'
+      APP_ORIGIN: ${APP_ORIGIN:-http://localhost:8080}
+      COOKIE_SECURE: 'false'
+      TRUST_PROXY: 'true'
+      ENABLE_SWAGGER: 'true'
+      DB_POOL_MAX: '10'
+      INFERENCE_URL: http://inference:8000
+      S3_ENDPOINT: http://minio:9000
+      S3_BUCKET: plantcare-images
+      S3_ACCESS_KEY: plantcare-local
+      S3_SECRET_KEY_FILE: /run/secrets/minio_password
+    secrets: [postgres_password, csrf_secret, minio_password]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+    networks: [edge, data, storage, inference]
+    restart: unless-stopped
+    mem_limit: 384m
+    cpus: 1.0
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/health/ready', {signal: AbortSignal.timeout(2000)}).then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  inference:
+    build: ./inference
+    init: true
+    security_opt: [no-new-privileges:true]
+    networks: [inference]
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1.0
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    logging: *logs
+
+  migrate:
+    <<: *api-image
+    command: [node, dist/migrate.js]
+    secrets: [postgres_password]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [data]
+    mem_limit: 192m
+    cpus: 0.5
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: plantcare
+      POSTGRES_USER: plantcare
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks: [data]
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1.0
+    healthcheck:
+      test: [CMD, pg_isready, -h, 127.0.0.1, -U, plantcare, -d, plantcare]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    logging: *logs
+
+  minio:
+    image: plantcare-minio:local
+    build: ./storage
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - |
+        MINIO_ROOT_PASSWORD="$$(cat /run/secrets/minio_password)"
+        test "$${#MINIO_ROOT_PASSWORD}" -eq 64
+        export MINIO_ROOT_PASSWORD
+        exec minio server /data
+    environment:
+      MINIO_ROOT_USER: plantcare-local
+      MINIO_BROWSER: 'off'
+      MINIO_UPDATE: 'off'
+    secrets: [minio_password]
+    volumes:
+      - minio_data:/data
+    networks: [storage]
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1.0
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, http://127.0.0.1:9000/minio/health/ready]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    logging: *logs
+
+  minio-init:
+    image: plantcare-minio:local
+    pull_policy: never
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - |
+        mc alias set local http://minio:9000 plantcare-local "$$(cat /run/secrets/minio_password)" >/dev/null
+        mc mb --ignore-existing local/plantcare-images >/dev/null
+        mc anonymous set none local/plantcare-images >/dev/null
+    secrets: [minio_password]
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks: [storage]
+    tmpfs: [/tmp]
+    mem_limit: 128m
+    cpus: 0.5
+    logging: *logs
+
+networks:
+  edge:
+  data:
+    internal: true
+  storage:
+    internal: true
+  inference:
+    internal: true
+
+volumes:
+  postgres_data:
+  minio_data:
+
+secrets:
+  postgres_password:
+    file: ./.secrets/postgres_password
+  csrf_secret:
+    file: ./.secrets/csrf_secret
+  minio_password:
+    file: ./.secrets/minio_password

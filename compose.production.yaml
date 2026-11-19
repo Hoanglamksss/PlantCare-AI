@@ -1,0 +1,131 @@
+name: plantcare-production
+
+x-logs: &logs
+  driver: json-file
+  options: {max-size: 10m, max-file: '3'}
+
+x-api: &api
+  image: ${BACKEND_IMAGE:-plantcare-backend:production}
+  build: ./backend
+  init: true
+  security_opt: [no-new-privileges:true]
+  logging: *logs
+
+services:
+  frontend:
+    image: ${FRONTEND_IMAGE:-plantcare-frontend:production}
+    build: ./frontend
+    ports: ['443:8443']
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN in .env.production}
+      NGINX_ENVSUBST_FILTER: '^APP_DOMAIN$'
+    volumes:
+      - ./deploy/nginx-production.conf.template:/etc/nginx/templates/default.conf.template:ro
+    tmpfs:
+      - /etc/nginx/conf.d:uid=101,gid=101,mode=0755
+    secrets: [origin_cert, origin_key]
+    depends_on:
+      backend: {condition: service_healthy, restart: true}
+    networks: [edge]
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.5
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8080/health/ready]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+    logging: *logs
+
+  backend:
+    <<: *api
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: '3000'
+      APP_ORIGIN: https://${APP_DOMAIN:?Set APP_DOMAIN}
+      COOKIE_SECURE: 'true'
+      TRUST_PROXY: 'true'
+      ENABLE_SWAGGER: 'false'
+      DB_POOL_MAX: '10'
+      INFERENCE_URL: http://inference:8000
+      S3_ENDPOINT: ${S3_ENDPOINT:?Set S3_ENDPOINT}
+      S3_REGION: auto
+      S3_BUCKET: ${S3_BUCKET:?Set S3_BUCKET}
+      S3_ACCESS_KEY_FILE: /run/secrets/r2_access_key
+      S3_SECRET_KEY_FILE: /run/secrets/r2_secret_key
+    secrets: [postgres_password, csrf_secret, r2_access_key, r2_secret_key]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      inference: {condition: service_healthy}
+    networks: [edge, data, inference]
+    restart: unless-stopped
+    mem_limit: 384m
+    cpus: 1.0
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/health/ready',{signal:AbortSignal.timeout(2000)}).then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+
+  inference:
+    image: ${INFERENCE_IMAGE:-plantcare-inference:production}
+    build: ./inference
+    init: true
+    security_opt: [no-new-privileges:true]
+    networks: [inference]
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1.0
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+    logging: *logs
+
+  migrate:
+    <<: *api
+    command: [node, dist/migrate.js]
+    secrets: [postgres_password]
+    depends_on:
+      postgres: {condition: service_healthy}
+    networks: [data]
+    mem_limit: 192m
+    cpus: 0.5
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: plantcare
+      POSTGRES_USER: plantcare
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password]
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    networks: [data]
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1.0
+    healthcheck:
+      test: [CMD, pg_isready, -h, 127.0.0.1, -U, plantcare, -d, plantcare]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    logging: *logs
+
+networks:
+  edge:
+  data: {internal: true}
+  inference: {internal: true}
+
+volumes:
+  postgres_data:
+
+secrets:
+  postgres_password: {file: ./.secrets/production/postgres_password}
+  csrf_secret: {file: ./.secrets/production/csrf_secret}
+  r2_access_key: {file: ./.secrets/production/r2_access_key}
+  r2_secret_key: {file: ./.secrets/production/r2_secret_key}
+  origin_cert: {file: ./.secrets/production/origin.crt}
+  origin_key: {file: ./.secrets/production/origin.key}

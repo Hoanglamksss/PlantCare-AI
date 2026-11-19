@@ -1,0 +1,2332 @@
+{
+  "version": "0.5",
+  "migrations": "0001–0011",
+  "tables": [
+    {
+      "name": "account_profiles",
+      "columns": [
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "ten_hien_thi",
+          "type": "text",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "so_dien_thoai",
+          "type": "text",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "anh_id",
+          "type": "uuid",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": true
+        }
+      ]
+    },
+    {
+      "name": "accounts",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "email",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": true
+        },
+        {
+          "name": "mat_khau_bam",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "vai_tro",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "yeu_cau_xoa_luc",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "admin_audit_logs",
+      "columns": [
+        {
+          "name": "nguoi_thuc_hien_id",
+          "type": "uuid",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "hanh_dong",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "loai_doi_tuong",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "doi_tuong_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "xay_ra_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "care_log_photos",
+      "columns": [
+        {
+          "name": "care_log_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "anh_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": true
+        },
+        {
+          "name": "position",
+          "type": "smallint",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "la_ghi_chu",
+          "type": "boolean",
+          "nullable": true,
+          "identity": false,
+          "generated": true,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "care_logs",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "cay_nguoi_dung_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "hoat_dong",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "ghi_chu",
+          "type": "text",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "xay_ra_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "la_ghi_chu",
+          "type": "boolean",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "care_schedules",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "cay_nguoi_dung_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "client_id",
+          "type": "uuid",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "hoat_dong",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tieu_de",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "ngay_bat_dau",
+          "type": "date",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "gio_hen",
+          "type": "time without time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "mui_gio",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "loai_lap",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "khoang_lap",
+          "type": "integer",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "dang_bat",
+          "type": "boolean",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "den_han_luc",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "xoa_luc",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tao_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "cap_nhat_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "community_comment_likes",
+      "columns": [
+        {
+          "name": "comment_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "community_comment_photos",
+      "columns": [
+        {
+          "name": "comment_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "anh_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": true
+        },
+        {
+          "name": "position",
+          "type": "smallint",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "community_comments",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "cay_nguoi_dung_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tac_gia_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "thu_tu",
+          "type": "bigint",
+          "nullable": false,
+          "identity": true,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "noi_dung",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tao_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "community_plant_posts",
+      "columns": [
+        {
+          "name": "cay_nguoi_dung_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "thu_tu",
+          "type": "bigint",
+          "nullable": false,
+          "identity": true,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": true
+        },
+        {
+          "name": "tieu_de",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "gioi_thieu",
+          "type": "text",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "da_chia_se",
+          "type": "boolean",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tao_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "chia_se_nhat_ky",
+          "type": "boolean",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "legacy_feed",
+          "type": "boolean",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "community_post_comments",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "post_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "parent_id",
+          "type": "uuid",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "thu_tu",
+          "type": "bigint",
+          "nullable": false,
+          "identity": true,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": true
+        },
+        {
+          "name": "noi_dung",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tao_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "an_luc",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "community_post_photos",
+      "columns": [
+        {
+          "name": "post_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "anh_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": true
+        },
+        {
+          "name": "position",
+          "type": "smallint",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "community_post_reactions",
+      "columns": [
+        {
+          "name": "post_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "reaction",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "community_posts",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "cay_nguoi_dung_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "legacy_plant_id",
+          "type": "uuid",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": true
+        },
+        {
+          "name": "thu_tu",
+          "type": "bigint",
+          "nullable": false,
+          "identity": true,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": true
+        },
+        {
+          "name": "tieu_de",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "noi_dung",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "chia_se_nhat_ky",
+          "type": "boolean",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "xay_ra_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tao_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "cap_nhat_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "an_luc",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "deleted_diagnosis_keys",
+      "columns": [
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "khoa_idempotency_bam",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "het_han_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "diagnoses",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "loai_cay_chon_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "cay_nguoi_dung_id",
+          "type": "uuid",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "anh_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": true
+        },
+        {
+          "name": "benh_du_doan_id",
+          "type": "uuid",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "huong_dan_id",
+          "type": "uuid",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "khoa_idempotency_bam",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "request_bam",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "trang_thai",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "ket_qua",
+          "type": "text",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "do_tin_cay",
+          "type": "numeric",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "phien_ban_mo_hinh",
+          "type": "text",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "ma_loi",
+          "type": "text",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tao_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "hoan_tat_luc",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "ket_qua_sang_loc",
+          "type": "jsonb",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "diagnosis_jobs",
+      "columns": [
+        {
+          "name": "chan_doan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "so_lan_thu",
+          "type": "integer",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "kha_dung_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "het_han_thue_luc",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "token_nhan",
+          "type": "uuid",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "disease_guides",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "benh_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "nguoi_duyet_id",
+          "type": "uuid",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "phien_ban",
+          "type": "integer",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "trang_thai",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "huong_dan",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "nguon_url",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "xuat_ban_luc",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "diseases",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "loai_cay_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "ma",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "ten_vi",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "dang_hoat_dong",
+          "type": "boolean",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "images",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "khoa_doi_tuong",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": true
+        },
+        {
+          "name": "loai_mime",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "kich_thuoc_byte",
+          "type": "integer",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "trang_thai_luu_tru",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "thu_xoa_lai_luc",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "notifications",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "thu_tu",
+          "type": "bigint",
+          "nullable": false,
+          "identity": true,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": true
+        },
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "cay_nguoi_dung_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "lich_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "hen_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tieu_de",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "noi_dung",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tao_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "doc_luc",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "plant_species",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "ma",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": true
+        },
+        {
+          "name": "ten_vi",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "dang_hoat_dong",
+          "type": "boolean",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "schema_migrations",
+      "columns": [
+        {
+          "name": "name",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "checksum",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "applied_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "sessions",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "token_bam",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": true
+        },
+        {
+          "name": "het_han_luc",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "thu_hoi_luc",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    },
+    {
+      "name": "user_plants",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": true,
+          "foreign": false,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "tai_khoan_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "loai_cay_id",
+          "type": "uuid",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": true,
+          "unique": true,
+          "uniqueSingle": false
+        },
+        {
+          "name": "biet_danh",
+          "type": "text",
+          "nullable": false,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "ghi_chu",
+          "type": "text",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "ngay_trong",
+          "type": "date",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        },
+        {
+          "name": "luu_tru_luc",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "identity": false,
+          "generated": false,
+          "primary": false,
+          "foreign": false,
+          "unique": false,
+          "uniqueSingle": false
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "parent": "accounts",
+      "child": "account_profiles",
+      "columns": [
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": true
+    },
+    {
+      "parent": "accounts",
+      "child": "admin_audit_logs",
+      "columns": [
+        "nguoi_thuc_hien_id"
+      ],
+      "optional": true,
+      "unique": false
+    },
+    {
+      "parent": "accounts",
+      "child": "care_schedules",
+      "columns": [
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "accounts",
+      "child": "community_comment_likes",
+      "columns": [
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "accounts",
+      "child": "community_comments",
+      "columns": [
+        "tac_gia_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "accounts",
+      "child": "community_post_comments",
+      "columns": [
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "accounts",
+      "child": "community_post_reactions",
+      "columns": [
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "accounts",
+      "child": "community_posts",
+      "columns": [
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "accounts",
+      "child": "deleted_diagnosis_keys",
+      "columns": [
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "accounts",
+      "child": "diagnoses",
+      "columns": [
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "accounts",
+      "child": "disease_guides",
+      "columns": [
+        "nguoi_duyet_id"
+      ],
+      "optional": true,
+      "unique": false
+    },
+    {
+      "parent": "accounts",
+      "child": "images",
+      "columns": [
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "accounts",
+      "child": "notifications",
+      "columns": [
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "accounts",
+      "child": "sessions",
+      "columns": [
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "accounts",
+      "child": "user_plants",
+      "columns": [
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "care_logs",
+      "child": "care_log_photos",
+      "columns": [
+        "care_log_id",
+        "tai_khoan_id",
+        "la_ghi_chu"
+      ],
+      "optional": true,
+      "unique": false
+    },
+    {
+      "parent": "care_schedules",
+      "child": "notifications",
+      "columns": [
+        "lich_id",
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "community_plant_posts",
+      "child": "community_comments",
+      "columns": [
+        "cay_nguoi_dung_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "community_plant_posts",
+      "child": "community_posts",
+      "columns": [
+        "legacy_plant_id"
+      ],
+      "optional": true,
+      "unique": true
+    },
+    {
+      "parent": "community_post_comments",
+      "child": "community_comment_likes",
+      "columns": [
+        "comment_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "community_post_comments",
+      "child": "community_comment_photos",
+      "columns": [
+        "comment_id",
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "community_post_comments",
+      "child": "community_post_comments",
+      "columns": [
+        "parent_id",
+        "post_id"
+      ],
+      "optional": true,
+      "unique": false
+    },
+    {
+      "parent": "community_posts",
+      "child": "community_post_comments",
+      "columns": [
+        "post_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "community_posts",
+      "child": "community_post_photos",
+      "columns": [
+        "post_id",
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "community_posts",
+      "child": "community_post_reactions",
+      "columns": [
+        "post_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "diagnoses",
+      "child": "diagnosis_jobs",
+      "columns": [
+        "chan_doan_id"
+      ],
+      "optional": false,
+      "unique": true
+    },
+    {
+      "parent": "disease_guides",
+      "child": "diagnoses",
+      "columns": [
+        "huong_dan_id",
+        "benh_du_doan_id"
+      ],
+      "optional": true,
+      "unique": false
+    },
+    {
+      "parent": "diseases",
+      "child": "diagnoses",
+      "columns": [
+        "benh_du_doan_id",
+        "loai_cay_chon_id"
+      ],
+      "optional": true,
+      "unique": false
+    },
+    {
+      "parent": "diseases",
+      "child": "disease_guides",
+      "columns": [
+        "benh_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "images",
+      "child": "account_profiles",
+      "columns": [
+        "anh_id",
+        "tai_khoan_id"
+      ],
+      "optional": true,
+      "unique": true
+    },
+    {
+      "parent": "images",
+      "child": "care_log_photos",
+      "columns": [
+        "anh_id",
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": true
+    },
+    {
+      "parent": "images",
+      "child": "community_comment_photos",
+      "columns": [
+        "anh_id",
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": true
+    },
+    {
+      "parent": "images",
+      "child": "community_post_photos",
+      "columns": [
+        "anh_id",
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": true
+    },
+    {
+      "parent": "images",
+      "child": "diagnoses",
+      "columns": [
+        "anh_id",
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": true
+    },
+    {
+      "parent": "plant_species",
+      "child": "diagnoses",
+      "columns": [
+        "loai_cay_chon_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "plant_species",
+      "child": "diseases",
+      "columns": [
+        "loai_cay_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "plant_species",
+      "child": "user_plants",
+      "columns": [
+        "loai_cay_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "user_plants",
+      "child": "care_logs",
+      "columns": [
+        "cay_nguoi_dung_id",
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "user_plants",
+      "child": "care_schedules",
+      "columns": [
+        "cay_nguoi_dung_id",
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "user_plants",
+      "child": "community_plant_posts",
+      "columns": [
+        "cay_nguoi_dung_id"
+      ],
+      "optional": false,
+      "unique": true
+    },
+    {
+      "parent": "user_plants",
+      "child": "community_posts",
+      "columns": [
+        "cay_nguoi_dung_id",
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    },
+    {
+      "parent": "user_plants",
+      "child": "diagnoses",
+      "columns": [
+        "cay_nguoi_dung_id",
+        "tai_khoan_id",
+        "loai_cay_chon_id"
+      ],
+      "optional": true,
+      "unique": false
+    },
+    {
+      "parent": "user_plants",
+      "child": "notifications",
+      "columns": [
+        "cay_nguoi_dung_id",
+        "tai_khoan_id"
+      ],
+      "optional": false,
+      "unique": false
+    }
+  ]
+}

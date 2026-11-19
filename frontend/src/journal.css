@@ -1,0 +1,374 @@
+.plant-journal {
+  padding-bottom: 1rem;
+}
+
+.plant-journal .journal-section {
+  margin-top: 2rem;
+}
+
+.plant-journal .journal-heading {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .8rem;
+  margin-bottom: .85rem;
+}
+
+.plant-journal h2 {
+  font-family: var(--sans, 'DM Sans', sans-serif);
+  font-size: 1.2rem;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: -.025em;
+  color: #173d2b;
+}
+
+.journal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+}
+
+.plant-journal .journal-actions .button {
+  min-height: 2.5rem;
+  padding: .5rem .8rem;
+  font-size: .8rem;
+  border-radius: .85rem;
+}
+
+.plant-journal .log-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: .85rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.plant-journal .log-list > .journal-entry {
+  display: block;
+  padding: 1.1rem;
+  background: #fff;
+  border: 1px solid #edf0e7;
+  border-radius: 1.25rem;
+  min-width: 0;
+}
+
+.journal-entry-body {
+  min-width: 0;
+}
+
+.journal-entry-heading {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  margin-bottom: .75rem;
+}
+
+.journal-entry-heading > div {
+  display: grid;
+  gap: .17rem;
+  min-width: 0;
+}
+
+.journal-entry-heading strong {
+  font-size: .95rem;
+  font-weight: 700;
+  color: #173d2b;
+}
+
+.journal-entry-heading time {
+  color: #6c7e6f;
+  font-size: .74rem;
+}
+
+.journal-activity-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.6rem;
+  height: 2.6rem;
+  color: #3f6e50;
+  background: #e9efdf;
+  border-radius: .85rem;
+}
+
+.journal-activity-icon[data-activity='watering'] {
+  color: #326875;
+  background: #e9f3f6;
+}
+
+.journal-activity-icon[data-activity='fertilizing'] {
+  color: #3c6547;
+  background: #e7efdc;
+}
+
+.journal-activity-icon[data-activity='observation'] {
+  color: #905239;
+  background: #faeee7;
+}
+
+.plant-journal .journal-entry:has(.journal-activity-icon[data-activity='watering']) {
+  border-color: #dce9ed;
+}
+
+.plant-journal .journal-entry:has(.journal-activity-icon[data-activity='observation']) {
+  border-color: #f0e2d8;
+}
+
+.plant-journal .journal-entry p {
+  font-size: .88rem;
+  line-height: 1.6;
+  color: #526d55;
+  margin-top: .5rem;
+}
+
+.journal-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .45rem;
+  margin-top: .8rem;
+  width: 100%;
+}
+
+.journal-gallery[data-count='1'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.journal-photo-button {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  background: #e9efdf;
+  border: 0;
+  border-radius: .85rem;
+  overflow: hidden;
+  cursor: zoom-in;
+  color: #6c7e6f;
+}
+
+.journal-gallery[data-count='1'] .journal-photo-button {
+  aspect-ratio: 16 / 10;
+}
+
+.journal-gallery[data-count='3'] .journal-photo-button:first-child {
+  grid-column: 1 / -1;
+  aspect-ratio: 16 / 8;
+}
+
+.journal-photo-button img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.journal-photo-unavailable {
+  display: block;
+  padding: .6rem;
+  font-size: .78rem;
+  text-align: center;
+}
+
+.journal-full-photo {
+  display: block;
+  width: 100%;
+  max-height: 62vh;
+  border-radius: .85rem;
+  object-fit: contain;
+  background: #e9efdf;
+}
+
+.journal-photo-picker {
+  display: grid;
+  gap: .6rem;
+}
+
+.journal-photo-label {
+  font-size: .95rem;
+  font-weight: 600;
+}
+
+.journal-attachments {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.journal-attachments li {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: .7rem;
+  background: #e9efdf;
+}
+
+.journal-attachments img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.journal-remove-photo {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  top: .3rem;
+  right: .3rem;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #173d2b;
+  box-shadow: 0 1px 4px #152b2550;
+  cursor: pointer;
+}
+
+.journal-edit-date {
+  margin-top: .55rem;
+  min-height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .78rem;
+  color: #286749;
+}
+
+.journal-scan-status {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .22rem .55rem;
+  border-radius: 999px;
+  background: #e9efdf;
+  color: #286749;
+  font-size: .74rem;
+}
+
+.journal-scan-status[data-status='failed'] {
+  background: #fbf1da;
+  color: #825d20;
+}
+
+.journal-scan-status[data-status='processing'] {
+  background: #e9f3f6;
+  color: #326875;
+}
+
+.journal-scan-status[data-status='queued'] {
+  background: #fbf1da;
+  color: #825d20;
+}
+
+.plant-journal .journal-assessment {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: .8rem;
+}
+
+.journal-assessment > .journal-photo-button {
+  aspect-ratio: 4 / 5;
+}
+
+.journal-assessment .log-entry-heading {
+  gap: .3rem;
+}
+
+.journal-assessment time {
+  font-size: .7rem;
+  color: #6c7e6f;
+}
+
+.journal-scan-details {
+  margin-top: .6rem;
+  color: #173d2b;
+}
+
+.journal-scan-details summary {
+  width: fit-content;
+  color: #905239;
+  cursor: pointer;
+  font-size: .8rem;
+  font-weight: 600;
+}
+
+.journal-scan-details :is(ul, ol) li::marker {
+  color: #ad7154;
+}
+
+.journal-scan-details h3 {
+  margin-top: .7rem;
+  font-size: .9rem;
+  font-family: inherit;
+  font-weight: 600;
+}
+
+.plant-journal .journal-scan-details :is(ul, ol) {
+  margin-block: .25rem 0;
+  padding-left: 1.3rem;
+  font-size: .85rem;
+}
+
+.plant-journal .journal-scan-details li {
+  padding: .1rem 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow-wrap: anywhere;
+  color: #526d55;
+}
+
+.plant-journal .empty-log {
+  padding: 1.1rem;
+  border: 0;
+  border-radius: 1.15rem;
+  background: #fff;
+  color: #6c7e6f;
+  font-size: .85rem;
+}
+
+@media (max-width: 52rem) {
+  .plant-journal .log-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+}
+
+@media (max-width: 36rem) {
+  .plant-journal .journal-section {
+    margin-top: 1.8rem;
+  }
+
+  .plant-journal .journal-heading {
+    row-gap: .65rem;
+  }
+
+  .plant-journal .journal-heading h2 {
+    width: 100%;
+  }
+
+  .plant-journal .journal-actions .button {
+    font-size: .76rem;
+    min-height: 2.4rem;
+  }
+
+  .plant-journal .log-list > .journal-entry {
+    padding: 1rem;
+  }
+
+  .plant-journal .journal-assessment {
+    grid-template-columns: 4.6rem minmax(0, 1fr);
+    gap: .7rem;
+  }
+
+}

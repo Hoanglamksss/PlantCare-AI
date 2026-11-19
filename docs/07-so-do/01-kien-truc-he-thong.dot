@@ -1,0 +1,34 @@
+digraph PlantCare {
+  graph [rankdir=TB, compound=true, bgcolor="white", pad=0.35, nodesep=0.45, ranksep=0.65, fontname="Arial", fontsize=23, labelloc=t, label="PlantCare AI — Kiến trúc bản local 0.5\nMã nguồn và Docker Compose · migration 0001–0011"];
+  node [shape=box, style="rounded,filled", fillcolor="#e8f5ef", color="#24734c", fontcolor="#173c2c", fontname="Arial", fontsize=16, margin="0.22,0.16", penwidth=1.5];
+  edge [fontname="Arial", fontsize=13, color="#486258", fontcolor="#284a3b", arrowsize=0.8];
+  user [label="User / Admin\nTrình duyệt máy tính hoặc điện thoại", fillcolor="#edf1fa", color="#43609b"];
+  subgraph cluster_local {
+    label="Docker Compose local"; fontname="Arial"; fontsize=18; color="#8cbaa3"; style=rounded;
+    frontend [label="Nginx + React\nGiao diện và reverse proxy\nhttp://localhost:8080"];
+    subgraph cluster_backend {
+      label="Node.js + TypeScript — Modular Monolith\nMột container backend local"; fontname="Arial"; fontsize=18; color="#7aa6ca"; style=rounded;
+      api [label="Express REST API\nPhiên, Origin, CSRF, giới hạn tải\nSwagger /docs", fillcolor="#eaf3fb", color="#3979a8"];
+      modules [label="Auth · Profile · Plants · Journal\nCommunity · Admin · Schedules\nChat · Diagnosis · Media", fillcolor="#eaf3fb", color="#3979a8"];
+      worker [label="Worker chẩn đoán và dọn ảnh\nWorker lịch chăm sóc (tick 10 giây)\nJob và giờ hẹn trong PostgreSQL", fillcolor="#eaf3fb", color="#3979a8"];
+      api -> modules [label="Xác thực và phân quyền"];
+      modules -> worker [label="Xếp công việc nền", style=dashed];
+    }
+    postgres [shape=cylinder, label="PostgreSQL 16 · 25 bảng\nTài khoản, cây, nhật ký, bài đăng\nLịch, thông báo, audit và job\nVolume bền vững"];
+    minio [shape=cylinder, label="MinIO riêng tư\nẢnh đã chuẩn hóa, bỏ EXIF\nVolume bền vững"];
+    python [label="Python / FastAPI nội bộ\nChuẩn hóa ảnh và sàng lọc dấu hiệu\nvisual-screening-1", fillcolor="#fff3dc", color="#a37627", fontcolor="#553e1a"];
+    frontend -> api [lhead=cluster_backend, label="Cùng origin, /api/v1\nCookie phiên"];
+    modules -> postgres [label="Giao dịch và quyền sở hữu"];
+    worker -> postgres [label="Lease ảnh và transaction lịch\nTạo thông báo, chống trùng"];
+    modules -> minio [label="S3 API qua module Media"];
+    worker -> minio [label="Đọc và dọn ảnh"];
+    modules -> python [label="Chuẩn hóa ảnh"];
+    worker -> python [label="Sàng lọc ảnh"];
+    {rank=same; postgres; minio; python}
+  }
+  user -> frontend [label="HTTP local\nMáy tính / điện thoại"];
+  future [label="Giai đoạn triển khai tiếp theo\nVPS + Cloudflare DNS / HTTPS / R2\nMô hình bệnh đã kiểm định\nPush / email ngoài ứng dụng", style="rounded,dashed", fillcolor="white", color="#8f8f8f", fontcolor="#606060"];
+  legend [shape=plaintext, style="", label="Khối tô màu = thành phần hiện có trong mã và Compose local\nKhối nét đứt = hạng mục phát triển / triển khai tiếp theo", fontsize=13, fontcolor="#4a4a4a"];
+  frontend -> future [style=dashed, label="Kiến trúc đích", color="#919191", fontcolor="#606060"];
+  future -> legend [style=invis];
+}

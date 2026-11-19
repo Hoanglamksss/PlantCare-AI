@@ -1,0 +1,81 @@
+digraph ERD {
+    graph [rankdir=LR, bgcolor="white", pad=0.45, nodesep=0.65, ranksep=1.4, splines=polyline, fontname="Arial", fontsize=25, labelloc=t, label="PlantCare AI — LỊCH SỬ THIẾT KẾ TRƯỚC 0.5\nBản nháp cộng đồng 0009 · đối chiếu sơ đồ 07 cho bản đã triển khai"];
+    node [shape=plain, fontname="Arial", fontsize=13, fontcolor="black"];
+    edge [dir=forward, arrowhead=normal, arrowsize=0.65, color="black", fontname="Arial", fontsize=12, minlen=1];
+    accounts [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="16"><B>accounts</B></FONT></TD></TR><TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK</TD></TR>
+<TR><TD ALIGN="LEFT">email</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT">UQ</TD></TR>
+<TR><TD ALIGN="LEFT">mat_khau_bam</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">vai_tro</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">yeu_cau_xoa_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT">?</TD></TR></TABLE>>];
+user_plants [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="16"><B>user_plants</B></FONT></TD></TR><TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK</TD></TR>
+<TR><TD ALIGN="LEFT">tai_khoan_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK</TD></TR>
+<TR><TD ALIGN="LEFT">loai_cay_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK</TD></TR>
+<TR><TD ALIGN="LEFT">biet_danh</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">ghi_chu</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT">?</TD></TR>
+<TR><TD ALIGN="LEFT">ngay_trong</TD><TD ALIGN="LEFT">date</TD><TD ALIGN="LEFT">?</TD></TR>
+<TR><TD ALIGN="LEFT">luu_tru_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT">?</TD></TR></TABLE>>];
+images [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="16"><B>images</B></FONT></TD></TR><TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK</TD></TR>
+<TR><TD ALIGN="LEFT">tai_khoan_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK</TD></TR>
+<TR><TD ALIGN="LEFT">khoa_doi_tuong</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT">UQ</TD></TR>
+<TR><TD ALIGN="LEFT">loai_mime</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">kich_thuoc_byte</TD><TD ALIGN="LEFT">int</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">trang_thai_luu_tru</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">thu_xoa_lai_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT">?</TD></TR></TABLE>>];
+community_plant_posts [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="16"><B>community_plant_posts</B></FONT></TD></TR><TR><TD ALIGN="LEFT">cay_nguoi_dung_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK, FK</TD></TR>
+<TR><TD ALIGN="LEFT">thu_tu</TD><TD ALIGN="LEFT">bigint</TD><TD ALIGN="LEFT">IDENTITY, UQ</TD></TR>
+<TR><TD ALIGN="LEFT">tieu_de</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">gioi_thieu</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT">?</TD></TR>
+<TR><TD ALIGN="LEFT">da_chia_se</TD><TD ALIGN="LEFT">boolean</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">tao_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">chia_se_nhat_ky</TD><TD ALIGN="LEFT">boolean</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">legacy_feed</TD><TD ALIGN="LEFT">boolean</TD><TD ALIGN="LEFT"></TD></TR></TABLE>>];
+community_posts [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="16"><B>community_posts</B></FONT></TD></TR><TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK</TD></TR>
+<TR><TD ALIGN="LEFT">cay_nguoi_dung_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK*</TD></TR>
+<TR><TD ALIGN="LEFT">tai_khoan_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK*</TD></TR>
+<TR><TD ALIGN="LEFT">legacy_plant_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK, UQ, ?</TD></TR>
+<TR><TD ALIGN="LEFT">thu_tu</TD><TD ALIGN="LEFT">bigint</TD><TD ALIGN="LEFT">IDENTITY, UQ</TD></TR>
+<TR><TD ALIGN="LEFT">tieu_de</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">noi_dung</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">chia_se_nhat_ky</TD><TD ALIGN="LEFT">boolean</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">xay_ra_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">tao_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">cap_nhat_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT"></TD></TR></TABLE>>];
+community_post_comments [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="16"><B>community_post_comments</B></FONT></TD></TR><TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK</TD></TR>
+<TR><TD ALIGN="LEFT">post_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK*</TD></TR>
+<TR><TD ALIGN="LEFT">tai_khoan_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK*</TD></TR>
+<TR><TD ALIGN="LEFT">parent_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK*, ?</TD></TR>
+<TR><TD ALIGN="LEFT">thu_tu</TD><TD ALIGN="LEFT">bigint</TD><TD ALIGN="LEFT">IDENTITY, UQ</TD></TR>
+<TR><TD ALIGN="LEFT">noi_dung</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">tao_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT"></TD></TR></TABLE>>];
+community_post_reactions [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="16"><B>community_post_reactions</B></FONT></TD></TR><TR><TD ALIGN="LEFT">post_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK*, FK</TD></TR>
+<TR><TD ALIGN="LEFT">tai_khoan_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK*, FK</TD></TR>
+<TR><TD ALIGN="LEFT">reaction</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT">heart / cry / laugh</TD></TR></TABLE>>];
+community_comment_likes [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="16"><B>community_comment_likes</B></FONT></TD></TR><TR><TD ALIGN="LEFT">comment_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK*, FK</TD></TR>
+<TR><TD ALIGN="LEFT">tai_khoan_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK*, FK</TD></TR></TABLE>>];
+community_post_photos [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="16"><B>community_post_photos</B></FONT></TD></TR><TR><TD ALIGN="LEFT">post_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK*, FK*</TD></TR>
+<TR><TD ALIGN="LEFT">tai_khoan_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK*</TD></TR>
+<TR><TD ALIGN="LEFT">anh_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK*, UQ</TD></TR>
+<TR><TD ALIGN="LEFT">position</TD><TD ALIGN="LEFT">smallint</TD><TD ALIGN="LEFT">PK*</TD></TR></TABLE>>];
+community_comment_photos [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="16"><B>community_comment_photos</B></FONT></TD></TR><TR><TD ALIGN="LEFT">comment_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK*, FK*</TD></TR>
+<TR><TD ALIGN="LEFT">tai_khoan_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK*</TD></TR>
+<TR><TD ALIGN="LEFT">anh_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK*, UQ</TD></TR>
+<TR><TD ALIGN="LEFT">position</TD><TD ALIGN="LEFT">smallint</TD><TD ALIGN="LEFT">PK*</TD></TR></TABLE>>];
+    accounts -> user_plants [label="1 : 0..N"];
+accounts -> images [label="1 : 0..N"];
+user_plants -> community_plant_posts [label="1 : 0..1"];
+user_plants -> community_posts [label="1 : 0..N"];
+accounts -> community_posts [label="1 : 0..N"];
+community_plant_posts -> community_posts [label="0..1 : 0..1"];
+community_posts -> community_post_comments [label="1 : 0..N"];
+accounts -> community_post_comments [label="1 : 0..N"];
+community_post_comments -> community_post_comments [label="0..1 : 0..N"];
+community_posts -> community_post_reactions [label="1 : 0..N"];
+accounts -> community_post_reactions [label="1 : 0..N"];
+community_post_comments -> community_comment_likes [label="1 : 0..N"];
+accounts -> community_comment_likes [label="1 : 0..N"];
+community_posts -> community_post_photos [label="1 : 0..4"];
+images -> community_post_photos [label="1 : 0..1"];
+community_post_comments -> community_comment_photos [label="1 : 0..4"];
+images -> community_comment_photos [label="1 : 0..1"];
+    legend [shape=plaintext, fontsize=14, label="Nguồn là bản nháp 0009 trước khi triển khai. Trạng thái trong hình thuộc thời điểm lập thiết kế.\nMỗi tài khoản có tối đa một phản ứng trên bài viết và một like trên bình luận.\nparent_id cùng post_id bắt buộc bình luận cha thuộc cùng bài viết.\nẢnh bài viết / bình luận giới hạn 4 vị trí (0–3) và đúng tài khoản sở hữu.\nMũi tên từ bảng được tham chiếu đến bảng giữ FK; nhãn ghi số đầu : số cuối.\nPK / FK / UQ / ? và dấu * dùng như ERD tổng thể."];
+  }

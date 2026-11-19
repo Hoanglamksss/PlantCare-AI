@@ -1,0 +1,42 @@
+digraph UseCase {
+  graph [rankdir=LR, bgcolor="white", pad=0.4, nodesep=0.3, ranksep=1.3, fontname="Arial", fontsize=23, labelloc=t, label="PlantCare AI 0.5 — Use case hiện có\nHai tác nhân User và Admin"];
+  node [fontname="Arial", fontsize=16, color="black", fontcolor="black", style="", margin="0.18,0.12"];
+  edge [color="black", arrowhead=none];
+  User [shape=box, label="«actor»\nUser", penwidth=1.8];
+  Admin [shape=box, label="«actor»\nAdmin", penwidth=1.8];
+  subgraph cluster_system {
+    label="PlantCare AI"; color="black"; fontname="Arial"; fontsize=18;
+    register [shape=ellipse, label="Đăng ký tài khoản"];
+    login [shape=ellipse, label="Đăng nhập / đăng xuất"];
+    profile [shape=ellipse, label="Sửa hồ sơ và ảnh đại diện\nĐổi email / mật khẩu"];
+    plants [shape=ellipse, label="Thêm, sửa và lưu trữ cây"];
+    journal [shape=ellipse, label="Ghi hoạt động chăm sóc\nNhật ký kèm tối đa 4 ảnh"];
+    scan [shape=ellipse, label="Chụp / tải ảnh sàng lọc\nXem kết quả và lịch sử"];
+    chat [shape=ellipse, label="Hỏi trợ lý chăm sóc cây"];
+    share [shape=ellipse, label="Chia sẻ / thu hồi hồ sơ cây\nChọn quyền xem lịch sử"];
+    community [shape=ellipse, label="Đăng, sửa và xóa bài kèm ảnh\nXem lịch sử khi chủ cây cho phép"];
+    comments [shape=ellipse, label="Bình luận, trả lời, cảm xúc\nẢnh bình luận và like"];
+    schedule [shape=ellipse, label="Tạo, sửa, tạm dừng và xóa lịch\nLặp ngày / tuần / tháng trên máy chủ"];
+    notifications [shape=ellipse, label="Xem thông báo chăm sóc\nĐánh dấu đã đọc"];
+    accounts [shape=ellipse, label="Tìm, khóa và mở tài khoản\nThu hồi phiên khi khóa"];
+    moderation [shape=ellipse, label="Tìm, ẩn và hiện bài đăng\nLưu nhật ký quản trị"];
+    {rank=same; register; login; profile; plants; journal; scan; chat; share; community; comments}
+  }
+  User -> register;
+  User -> login;
+  User -> profile;
+  User -> plants;
+  User -> journal;
+  User -> scan;
+  User -> chat;
+  User -> share;
+  User -> community;
+  User -> comments;
+  User -> schedule;
+  User -> notifications;
+  Admin -> login;
+  Admin -> accounts;
+  Admin -> moderation;
+  note [shape=plaintext, fontsize=13, label="Admin dùng thêm các chức năng chính chủ như User.\nQuyền Admin được cấp qua CLI cho tài khoản đã đăng ký.\nLịch và thông báo lưu PostgreSQL theo tài khoản.\nQuản trị danh mục/hướng dẫn và Web Push còn ở lộ trình."];
+  Admin -> note [style=invis];
+}

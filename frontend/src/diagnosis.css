@@ -1,0 +1,100 @@
+.diagnosis-page { max-width: 44rem; margin-inline: auto; padding-bottom: 1rem; }
+.diagnosis-page .scan-stage { color: #eef2e5; background: #173d2b; padding: 1.5rem clamp(1rem, 4vw, 2.5rem) 1.3rem; border-radius: 1.8rem; }
+.diagnosis-page .scan-stage-heading, .diagnosis-page .scan-result-heading { display: grid; grid-template-columns: 2rem minmax(0, 1fr) 2rem; align-items: center; gap: .6rem; }
+.diagnosis-page .scan-stage-heading h1, .diagnosis-page .scan-result-heading h1 { font-family: var(--sans); font-size: 1rem; font-weight: 650; letter-spacing: -.025em; text-align: center; line-height: 1.35; }
+.diagnosis-page .scan-stage-heading a { display: grid; place-items: center; color: inherit; min-width: 2rem; min-height: 2.4rem; border-radius: 50%; }
+.diagnosis-page .scan-stage-heading > svg { justify-self: end; color: #d8e7bb; }
+.diagnosis-page .scan-stage-intro { text-align: center; color: #bcccbc; font-size: .83rem; margin: .6rem 0 1.5rem; }
+.diagnosis-page .scan-viewfinder { position: relative; display: grid; place-items: center; width: 100%; max-width: 26rem; margin-inline: auto; aspect-ratio: 4/4.3; max-height: 31rem; border-radius: 1.5rem; background: #204934; overflow: hidden; isolation: isolate; }
+.diagnosis-page .scan-viewfinder.has-photo::after { position: absolute; content: ''; inset: 0; box-shadow: inset 0 0 4rem #102b266b; pointer-events: none; }
+.diagnosis-page .scan-viewfinder img { width: 100%; height: 100%; position: absolute; inset: 0; object-fit: contain; }
+.diagnosis-page .scan-viewfinder-empty { display: grid; justify-items: center; gap: 1.15rem; max-width: 14rem; padding: 1rem; color: #baceb7; text-align: center; }
+.diagnosis-page .scan-viewfinder-empty > span { font-size: .83rem; max-width: 11rem; }
+.diagnosis-page .scan-frame { position: absolute; inset: 12% 9%; pointer-events: none; }
+.diagnosis-page .scan-frame i { position: absolute; width: 2.1rem; height: 2.1rem; border: solid #dbe9bf; }
+.diagnosis-page .scan-frame i:nth-child(1) { inset: 0 auto auto 0; border-width: 2px 0 0 2px; border-top-left-radius: 1.3rem; }
+.diagnosis-page .scan-frame i:nth-child(2) { inset: 0 0 auto auto; border-width: 2px 2px 0 0; border-top-right-radius: 1.3rem; }
+.diagnosis-page .scan-frame i:nth-child(3) { inset: auto auto 0 0; border-width: 0 0 2px 2px; border-bottom-left-radius: 1.3rem; }
+.diagnosis-page .scan-frame i:nth-child(4) { inset: auto 0 0 auto; border-width: 0 2px 2px 0; border-bottom-right-radius: 1.3rem; }
+.diagnosis-page .scan-frame-caption { position: absolute; bottom: 1rem; padding: .45rem 1.15rem; border-radius: 999px; color: #edf3e0; background: #205a3de8; font-size: .72rem; z-index: 1; }
+.diagnosis-page .scan-photo-tip { color: #c0d1bb; text-align: center; font-size: .76rem; line-height: 1.6; margin: 1.25rem .5rem; }
+.diagnosis-page .scan-upload-controls { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1rem; max-width: 25rem; margin: 1.35rem auto 1.55rem; }
+.diagnosis-page .scan-side-control, .diagnosis-page .scan-format { display: grid; justify-items: center; gap: .45rem; font-size: .7rem; color: #d1dfca; }
+.diagnosis-page .scan-side-control { padding: .45rem; background: none; border: none; border-radius: .6rem; }
+.diagnosis-page .scan-side-control:hover:not(:disabled) { background: #ffffff0a; }
+.diagnosis-page .scan-shutter { display: grid; place-items: center; width: 4.55rem; height: 4.55rem; padding: .28rem; border: 2px solid #78926f; border-radius: 50%; background: transparent; color: #285b3c; box-shadow: 0 0 0 1px #294c36; }
+.diagnosis-page .scan-shutter > span { display: grid; place-items: center; width: 100%; height: 100%; border: 2px solid white; border-radius: 50%; background: #e4edce; }
+.diagnosis-page .scan-shutter:hover:not(:disabled) > span { background: #f3f7e7; }
+.diagnosis-page .scan-upload-details { border-top: 1px solid #3a5a44; padding-top: 1.1rem; }
+.diagnosis-page .scan-fields { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+.diagnosis-page .scan-stage .field { font-size: .76rem; color: #dce6d3; }
+.diagnosis-page .scan-stage .field select { min-width: 0; width: 100%; padding: .7rem .65rem; border-color: #54725b; border-radius: .75rem; background: #244a35; color: #eff4e8; font-size: .82rem; }
+.diagnosis-page .scan-stage .field select option { background: #244a35; }
+.diagnosis-page .scan-stage .scan-submit { border-radius: .8rem; width: 100%; min-height: 3.15rem; background: #dce9c8; color: #204a31; }
+.diagnosis-page .scan-stage .button-plain { color: #e0ebd7; font-size: .75rem; }
+.diagnosis-page .scan-file-limits { color: #b7cbb2; text-align: center; font-size: .66rem; }
+.diagnosis-page .scan-result { display: grid; gap: 1.15rem; scroll-margin-top: 1rem; }
+.diagnosis-page .scan-result-heading { margin-bottom: .65rem; }
+.diagnosis-page .scan-result-heading > button { width: 2rem; height: 2.4rem; border: 0; border-radius: 50%; padding: 0; background: transparent; color: var(--ink); display: grid; place-items: center; }
+.diagnosis-page .scan-result-summary { display: grid; grid-template-columns: 7.6rem minmax(0, 1fr); gap: 1.05rem; align-items: center; }
+.diagnosis-page .scan-result-photo { width: 100%; height: auto; aspect-ratio: .93; object-fit: cover; border-radius: 1.35rem; background: var(--pale-green); }
+.diagnosis-page .scan-crop-label { color: var(--muted); display: block; font-size: .66rem; text-transform: uppercase; letter-spacing: .07em; }
+.diagnosis-page .scan-result-summary h2 { font: 700 clamp(1.2rem, 4vw, 1.55rem)/1.3 var(--sans); letter-spacing: -.035em; margin: .4rem 0 .75rem; }
+.diagnosis-page .scan-result-badge { display: inline-block; padding: .3rem .75rem; border-radius: 999px; background: #f5ecd8; color: #916e37; font-size: .67rem; font-weight: 650; }
+.diagnosis-page .scan-result-badge.is-clear { background: var(--pale-green); color: var(--green); }
+.diagnosis-page .scan-result-description { font-size: .87rem; line-height: 1.7; color: #587060; }
+.diagnosis-page .scan-result-callout { display: flex; align-items: flex-start; gap: .75rem; border-radius: 1.1rem; padding: 1.05rem; color: #896b35; background: #f5ecd8; }
+.diagnosis-page .scan-result-callout > svg { margin-top: .12rem; flex: 0 0 auto; }
+.diagnosis-page .scan-result-callout strong { font-size: .84rem; font-weight: 650; }
+.diagnosis-page .scan-result-callout p { margin-top: .25rem; font-size: .73rem; line-height: 1.6; color: #a08451; }
+.diagnosis-page .scan-result-callout.is-clear { color: var(--green); background: var(--pale-green); }
+.diagnosis-page .scan-result-callout.is-clear p { color: #657e50; }
+.diagnosis-page .scan-finding { padding: 1.15rem; background: var(--surface); border-radius: 1.2rem; font-size: .84rem; }
+.diagnosis-page .scan-finding strong { display: block; color: var(--green); font-weight: 650; }
+.diagnosis-page .scan-finding p { font-size: .8rem; color: var(--muted); margin-top: .35rem; line-height: 1.65; }
+.diagnosis-page .scan-advice { border: 0; padding: 0; background: transparent; }
+.diagnosis-page .scan-advice h3 { margin: .35rem 0 .55rem; font-size: 1.15rem; font-weight: 650; letter-spacing: -.03em; }
+.diagnosis-page .scan-advice ul, .diagnosis-page .scan-advice ol { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; gap: .6rem; }
+.diagnosis-page .scan-advice ul li { padding: 1.05rem 1.15rem; background: var(--surface); border-radius: 1.2rem; font-size: .82rem; line-height: 1.6; }
+.diagnosis-page .scan-advice ul strong { font-weight: 650; }
+.diagnosis-page .scan-advice ul p { margin-top: .35rem; color: var(--muted); font-size: .78rem; }
+.diagnosis-page .scan-care { counter-reset: scan-care-step; }
+.diagnosis-page .scan-section-caption { font-size: .77rem; color: var(--muted); }
+.diagnosis-page .scan-care ol li { display: grid; grid-template-columns: 1.85rem minmax(0, 1fr); align-items: start; gap: .8rem; padding: 1.05rem; background: var(--surface); border-radius: 1.2rem; font-size: .82rem; line-height: 1.65; color: #42654e; }
+.diagnosis-page .scan-care ol li::before { counter-increment: scan-care-step; content: counter(scan-care-step); display: grid; place-items: center; height: 1.85rem; border-radius: 50%; background: var(--pale-green); color: var(--green); font-size: .77rem; font-weight: 650; }
+.diagnosis-page .scan-reference { display: inline-flex; align-items: center; justify-content: flex-end; gap: .25rem; color: var(--green); font-size: .7rem; text-decoration: none; }
+.diagnosis-page .scan-reference:hover { text-decoration: underline; }
+.diagnosis-page .scan-result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; margin-top: .5rem; }
+.diagnosis-page .scan-result-actions .button { min-height: 3.1rem; border-radius: 1rem; font-size: .8rem; }
+.diagnosis-page .scan-result-actions .button-secondary { background: var(--pale-green); border-color: transparent; }
+.diagnosis-page .scan-result-utilities { display: flex; align-items: center; justify-content: center; gap: .7rem; }
+.diagnosis-page .scan-result-utilities .button { font-size: .73rem; border-radius: .65rem; }
+.diagnosis-page .scan-limit { border: 0; padding: 0; font-size: .68rem; color: var(--muted); line-height: 1.6; text-align: center; }
+.diagnosis-page .scan-limit a { color: var(--green); text-underline-offset: .18rem; }
+.diagnosis-page .scan-progress { display: flex; align-items: center; gap: .65rem; color: var(--green); background: var(--pale-green); padding: 1rem; border-radius: 1rem; font-size: .83rem; }
+.diagnosis-page .scan-progress > svg { flex: 0 0 auto; }
+.diagnosis-page .scan-history { margin-top: 2rem; background: var(--surface); padding: 1.2rem 1.35rem; border-radius: 1.35rem; }
+.diagnosis-page .scan-history-heading { display: flex; align-items: center; justify-content: space-between; gap: .7rem; margin-bottom: .9rem; }
+.diagnosis-page .scan-history-heading h2 { font: 650 1.02rem/1.3 var(--sans); letter-spacing: -.03em; }
+.diagnosis-page .scan-history-heading .text-button { font-size: .72rem; white-space: nowrap; }
+.diagnosis-page .scan-history > p { font-size: .8rem; }
+.diagnosis-page .scan-history-item { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; border: 0; background: transparent; padding: .85rem 0; text-align: start; color: var(--ink); }
+.diagnosis-page .scan-history-item + .scan-history-item { border-top: 1px solid var(--border); }
+.diagnosis-page .scan-history-item > span:first-child { min-width: 0; }
+.diagnosis-page .scan-history-item strong { display: block; font-size: .83rem; font-weight: 600; }
+.diagnosis-page .scan-history-item small { display: block; font-size: .65rem; color: var(--muted); margin-top: .3rem; }
+.diagnosis-page .scan-history-item > span:last-child { display: flex; align-items: center; gap: .4rem; color: var(--green); font-size: .65rem; white-space: nowrap; }
+.diagnosis-page .scan-history > .button { border-radius: .8rem; font-size: .78rem; margin-top: .5rem; }
+@media (max-width: 48rem) {
+.diagnosis-page .scan-stage { border-radius: 1.5rem; padding-inline: 1rem; }
+.diagnosis-page .scan-stage-intro { margin-bottom: 1.25rem; }
+.diagnosis-page .scan-photo-tip { margin-top: 1rem; }
+.diagnosis-page .scan-viewfinder { aspect-ratio: .8; }
+.diagnosis-page .scan-result-summary { grid-template-columns: 6.9rem minmax(0, 1fr); gap: .85rem; }
+.diagnosis-page .scan-result-summary h2 { font-size: 1.18rem; }
+}
+@media (max-width: 23rem) {
+.diagnosis-page .scan-result-actions { grid-template-columns: 1fr; }
+.diagnosis-page .scan-result-summary { grid-template-columns: 5.5rem minmax(0, 1fr); }
+.diagnosis-page .scan-fields { gap: .5rem; }
+}

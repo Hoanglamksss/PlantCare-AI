@@ -1,0 +1,7 @@
+.plant-photo { position: relative; display: block; overflow: hidden; isolation: isolate; min-width: 0; background: var(--pale-green); }
+.plant-photo > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.plant-photo[data-panel] > img { position: absolute; left: 50%; width: auto; height: 100%; max-width: none; }
+.plant-photo[data-panel='0'] > img { transform: translateX(-16.6667%); }
+.plant-photo[data-panel='1'] > img { transform: translateX(-50%); }
+.plant-photo[data-panel='2'] > img { transform: translateX(-83.3333%); }
+.plant-photo > svg { position: absolute; inset: 0; margin: auto; color: var(--green); }

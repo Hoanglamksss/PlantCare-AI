@@ -1,0 +1,63 @@
+digraph ERD {
+    graph [rankdir=LR, bgcolor="white", pad=0.5, nodesep=0.65, ranksep=1.5, splines=polyline,
+      fontname="Arial", fontsize=25, labelloc=t, label="PlantCare AI 0.5 — ERD lịch chăm sóc và thông báo\nDữ liệu máy chủ thuộc từng tài khoản"];
+    node [shape=plain, fontname="Arial", fontsize=12, fontcolor="black"];
+    edge [dir=forward, arrowhead=normal, arrowsize=0.65, color="black", fontname="Arial", fontsize=12];
+    accounts [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="6"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="15"><B>accounts</B></FONT></TD></TR><TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK</TD></TR>
+<TR><TD ALIGN="LEFT">email</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT">UQ</TD></TR>
+<TR><TD ALIGN="LEFT">mat_khau_bam</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">vai_tro</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">yeu_cau_xoa_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT">?</TD></TR></TABLE>>];
+user_plants [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="6"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="15"><B>user_plants</B></FONT></TD></TR><TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK</TD></TR>
+<TR><TD ALIGN="LEFT">tai_khoan_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK, UQ*</TD></TR>
+<TR><TD ALIGN="LEFT">loai_cay_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK, UQ*</TD></TR>
+<TR><TD ALIGN="LEFT">biet_danh</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">ghi_chu</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT">?</TD></TR>
+<TR><TD ALIGN="LEFT">ngay_trong</TD><TD ALIGN="LEFT">date</TD><TD ALIGN="LEFT">?</TD></TR>
+<TR><TD ALIGN="LEFT">luu_tru_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT">?</TD></TR></TABLE>>];
+care_schedules [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="6"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="15"><B>care_schedules</B></FONT></TD></TR><TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK</TD></TR>
+<TR><TD ALIGN="LEFT">tai_khoan_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK, UQ*</TD></TR>
+<TR><TD ALIGN="LEFT">cay_nguoi_dung_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK</TD></TR>
+<TR><TD ALIGN="LEFT">client_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">UQ*, ?</TD></TR>
+<TR><TD ALIGN="LEFT">hoat_dong</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">tieu_de</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">ngay_bat_dau</TD><TD ALIGN="LEFT">date</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">gio_hen</TD><TD ALIGN="LEFT">time</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">mui_gio</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">loai_lap</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">khoang_lap</TD><TD ALIGN="LEFT">integer</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">dang_bat</TD><TD ALIGN="LEFT">boolean</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">den_han_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT">?</TD></TR>
+<TR><TD ALIGN="LEFT">xoa_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT">?</TD></TR>
+<TR><TD ALIGN="LEFT">tao_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">cap_nhat_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT"></TD></TR></TABLE>>];
+notifications [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="6"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="15"><B>notifications</B></FONT></TD></TR><TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK</TD></TR>
+<TR><TD ALIGN="LEFT">thu_tu</TD><TD ALIGN="LEFT">bigint</TD><TD ALIGN="LEFT">UQ, IDENTITY</TD></TR>
+<TR><TD ALIGN="LEFT">tai_khoan_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK</TD></TR>
+<TR><TD ALIGN="LEFT">cay_nguoi_dung_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK</TD></TR>
+<TR><TD ALIGN="LEFT">lich_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK, UQ*</TD></TR>
+<TR><TD ALIGN="LEFT">hen_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT">UQ*</TD></TR>
+<TR><TD ALIGN="LEFT">tieu_de</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">noi_dung</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">tao_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">doc_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT">?</TD></TR></TABLE>>];
+sessions [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="6"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="15"><B>sessions</B></FONT></TD></TR><TR><TD ALIGN="LEFT">id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">PK</TD></TR>
+<TR><TD ALIGN="LEFT">tai_khoan_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK</TD></TR>
+<TR><TD ALIGN="LEFT">token_bam</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT">UQ</TD></TR>
+<TR><TD ALIGN="LEFT">het_han_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">thu_hoi_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT">?</TD></TR></TABLE>>];
+admin_audit_logs [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="6"><TR><TD COLSPAN="3" BORDER="1"><FONT POINT-SIZE="15"><B>admin_audit_logs</B></FONT></TD></TR><TR><TD ALIGN="LEFT">nguoi_thuc_hien_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT">FK, ?</TD></TR>
+<TR><TD ALIGN="LEFT">hanh_dong</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">loai_doi_tuong</TD><TD ALIGN="LEFT">text</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">doi_tuong_id</TD><TD ALIGN="LEFT">uuid</TD><TD ALIGN="LEFT"></TD></TR>
+<TR><TD ALIGN="LEFT">xay_ra_luc</TD><TD ALIGN="LEFT">timestamptz</TD><TD ALIGN="LEFT"></TD></TR></TABLE>>];
+    accounts -> admin_audit_logs [label="0..1 : 0..N"];
+accounts -> care_schedules [label="1 : 0..N"];
+accounts -> notifications [label="1 : 0..N"];
+accounts -> sessions [label="1 : 0..N"];
+accounts -> user_plants [label="1 : 0..N"];
+care_schedules -> notifications [label="1 : 0..N"];
+user_plants -> care_schedules [label="1 : 0..N"];
+user_plants -> notifications [label="1 : 0..N"];
+    legend [shape=plaintext, fontsize=14, label="PK = khóa chính · FK = khóa ngoại · UQ = duy nhất · UQ* = tham gia khóa duy nhất ghép · ? = được rỗng\nKhóa ghép được gom thành quan hệ giữa bảng. Mũi tên từ bảng được tham chiếu tới bảng giữ FK.\nCardinality thể hiện khả năng schema; API tạo chẩn đoán và job cùng giao dịch.\nclient_id duy nhất theo tài khoản giúp nhập lịch trình duyệt an toàn.\nUNIQUE (lich_id, hen_luc) chống trùng. Xóa lịch dừng nhắc mới, giữ lịch sử thông báo.\nWorker chỉ nhắc tài khoản hoạt động và cây chưa lưu trữ. Múi giờ Asia/Ho_Chi_Minh (UTC+7)."];
+  }

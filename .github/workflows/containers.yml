@@ -1,0 +1,85 @@
+name: Build containers
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        folder: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: '${{ matrix.folder }}/package-lock.json'
+      - run: npm ci --no-audit --no-fund
+        working-directory: '${{ matrix.folder }}'
+      - run: npm run typecheck
+        working-directory: '${{ matrix.folder }}'
+      - run: npm run build
+        working-directory: '${{ matrix.folder }}'
+  integration:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: for script in scripts/prepare-production.sh scripts/deploy-production.sh; do sh -n "$script"; done
+      - run: node scripts/setup-local.mjs
+      - run: docker compose up --build -d --wait --wait-timeout 180
+      - run: node scripts/smoke-local.mjs
+      - run: node scripts/smoke-community.mjs
+      - run: node scripts/smoke-admin-schedules.mjs
+      - if: failure()
+        run: docker compose logs --no-color --tail=100
+      - if: always()
+        run: docker compose down --volumes
+
+  publish:
+    needs: integration
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        folder: [backend, frontend, inference]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: '${{ github.actor }}'
+          password: '${{ secrets.GITHUB_TOKEN }}'
+      - id: image
+        shell: bash
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}/${{ matrix.folder }}" >> "$GITHUB_OUTPUT"
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: './${{ matrix.folder }}'
+          push: true
+          tags: '${{ steps.image.outputs.name }}:${{ github.sha }}'
+      - name: Record immutable image reference
+        shell: bash
+        env:
+          IMAGE: '${{ steps.image.outputs.name }}'
+          DIGEST: '${{ steps.build.outputs.digest }}'
+        run: printf '%s@%s\n' "$IMAGE" "$DIGEST" > image-reference.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: '${{ matrix.folder }}-image-reference'
+          path: image-reference.txt

@@ -1,0 +1,394 @@
+.garden-page, .garden-detail {
+  color: #173d2b;
+}
+
+.garden-heading {
+  align-items: flex-start;
+  margin-bottom: 1.4rem;
+}
+
+.garden-heading h1, .garden-detail h1 {
+  font-family: var(--sans, 'DM Sans', sans-serif);
+  font-size: clamp(1.8rem, 3vw, 2.3rem);
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -.035em;
+}
+
+.garden-heading p {
+  font-size: .9rem;
+  margin-top: .4rem;
+  color: #6c7e6f;
+}
+
+.garden-page .button, .garden-detail .button {
+  border-radius: .95rem;
+}
+
+.garden-heading > .button {
+  min-height: 2.85rem;
+  padding-inline: .95rem;
+}
+
+.garden-filters {
+  gap: .5rem;
+  margin-bottom: 1.25rem;
+}
+
+.garden-filters .filter {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: 2.5rem;
+  padding: .5rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  color: #526d55;
+  background: #e9efdf;
+  font-size: .85rem;
+  font-weight: 600;
+}
+
+.garden-filters .filter[aria-pressed='true'] {
+  color: #fff;
+  background: #286749;
+}
+
+.garden-filters .filter:last-child[aria-pressed='false'] {
+  color: #825d20;
+  background: #fbf1da;
+}
+
+.garden-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.garden-plant-card {
+  display: grid;
+  grid-template-columns: 8.4rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 .9rem 0 0;
+  min-width: 0;
+  min-height: 11rem;
+  border: 1px solid #edf0e7;
+  border-radius: 1.4rem;
+  color: #173d2b;
+  background: #fff;
+  text-align: left;
+  overflow: hidden;
+  box-shadow: 0 .35rem 1.2rem #28674908;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.garden-plant-card:hover {
+  border-color: #b9cfb6;
+  box-shadow: 0 .35rem 1.2rem #27452f0d;
+}
+
+.garden-species-photo {
+  height: 100%;
+  min-height: 0;
+}
+
+.garden-card-copy {
+  display: grid;
+  justify-items: start;
+  align-content: center;
+  gap: .4rem;
+  padding-block: 1rem;
+  min-width: 0;
+}
+
+.garden-species {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  width: fit-content;
+  max-width: 100%;
+  padding: .23rem .6rem;
+  border-radius: 999px;
+  color: #3c6547;
+  background: #e9efdf;
+  font-size: .75rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.garden-card-copy strong {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.garden-card-date {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  color: #718172;
+  font-size: .74rem;
+}
+
+.garden-card-date svg, .garden-planted-date svg {
+  color: #477b87;
+}
+
+.garden-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  margin-top: .2rem;
+  color: #286749;
+  font-size: .77rem;
+  font-weight: 600;
+}
+
+.garden-card-chevron {
+  color: #7c907d;
+}
+
+.garden-empty {
+  border: 0;
+  border-radius: 1.4rem;
+  background: #fff;
+}
+
+.garden-empty h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.garden-empty p {
+  max-width: 25rem;
+  font-size: .9rem;
+}
+
+.garden-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 3.7rem;
+  height: 3.7rem;
+  border-radius: 1.15rem;
+  color: #286749;
+  background: #e9efdf;
+  margin-bottom: .35rem;
+}
+
+.garden-detail-intro {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(1.4rem, 4vw, 3.3rem);
+}
+
+.garden-detail-photo {
+  position: relative;
+  margin: 0;
+  min-width: 0;
+  height: 30rem;
+  border-radius: 1.4rem;
+  overflow: hidden;
+}
+
+.garden-detail-photo .garden-species-photo img {
+  object-position: 55% center;
+}
+
+.garden-photo-back {
+  position: absolute;
+  inset: .9rem auto auto .9rem;
+  display: grid;
+  place-items: center;
+  width: 2.65rem;
+  height: 2.65rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #173d2b;
+  background: #fff;
+  box-shadow: 0 .15rem .65rem #15382312;
+}
+
+.garden-photo-back:hover:not(:disabled) {
+  background: #e9efdf;
+}
+
+.garden-detail-photo figcaption {
+  position: absolute;
+  inset: auto .8rem .8rem auto;
+  max-width: calc(100% - 1.6rem);
+  padding: .25rem .6rem;
+  border-radius: 999px;
+  color: #173d2b;
+  background: #ffffffed;
+  font-size: .67rem;
+}
+
+.garden-detail-copy {
+  min-width: 0;
+}
+
+.garden-detail-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-bottom: .8rem;
+}
+
+.garden-detail h1 {
+  font-size: clamp(1.9rem, 3.5vw, 2.7rem);
+}
+
+.garden-detail-pills .garden-species {
+  font-size: .8rem;
+  padding: .35rem .7rem;
+}
+
+.garden-archived {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  border-radius: 999px;
+  padding: .35rem .7rem;
+  font-size: .8rem;
+  color: #825d20;
+  background: #fbf1da;
+}
+
+.garden-planted-date {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  margin-top: .85rem;
+  color: #718172;
+  font-size: .85rem;
+}
+
+.garden-plant-note {
+  margin-top: 1.15rem;
+  font-size: .95rem;
+  line-height: 1.7;
+  color: #526d55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.garden-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+  margin-top: 1.4rem;
+}
+
+.garden-detail-actions .button {
+  font-size: .86rem;
+  padding-inline: .85rem;
+}
+
+.garden-detail-actions .button-secondary:not(.garden-archive-button) {
+  color: #326875;
+  background: #e9f3f6;
+  border-color: #d5e5e9;
+}
+
+.garden-detail-actions .garden-archive-button {
+  color: #825d20;
+  background: #fbf1da;
+  border-color: #eddfbb;
+}
+
+.garden-detail-feedback:empty {
+  display: none;
+}
+
+.garden-detail-feedback {
+  margin-top: 1rem;
+}
+
+@media (max-width: 52rem) {
+  .garden-card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .garden-plant-card {
+    grid-template-columns: 8.6rem minmax(0, 1fr) auto;
+    min-height: 10.8rem;
+  }
+
+  .garden-detail-intro {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+
+  .garden-detail-photo {
+    height: 23rem;
+  }
+
+}
+
+@media (max-width: 36rem) {
+  .garden-heading {
+    gap: .6rem;
+  }
+
+  .garden-heading p {
+    max-width: 15rem;
+    font-size: .8rem;
+  }
+
+  .garden-heading > .button {
+    font-size: .8rem;
+    gap: .25rem;
+    min-height: 2.6rem;
+    padding-inline: .65rem;
+  }
+
+  .garden-filters .filter {
+    min-height: 2.3rem;
+    font-size: .78rem;
+    padding-inline: .75rem;
+  }
+
+  .garden-plant-card {
+    grid-template-columns: minmax(6.5rem, 36%) minmax(0, 1fr) auto;
+    min-height: 10.4rem;
+    gap: .8rem;
+    padding-right: .65rem;
+  }
+
+  .garden-card-copy strong {
+    font-size: 1.08rem;
+  }
+
+  .garden-card-chevron {
+    width: 15px;
+  }
+
+  .garden-detail-photo {
+    height: min(23rem, 98vw);
+  }
+
+  .garden-detail h1 {
+    font-size: 1.8rem;
+  }
+
+  .garden-detail-actions {
+    gap: .45rem;
+  }
+
+  .garden-detail-actions .button {
+    font-size: .8rem;
+    min-height: 2.7rem;
+    padding-inline: .75rem;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .garden-plant-card {
+    transition: none;
+  }
+
+}
