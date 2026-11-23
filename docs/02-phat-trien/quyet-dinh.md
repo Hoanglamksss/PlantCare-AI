@@ -37,3 +37,7 @@ Lịch sử trạng thái các phiên cũ được giữ ở [lịch sử phiên
 - 23/11: dùng phân luồng theo dữ liệu cho ảnh, hướng dẫn web và lịch sử tưới. Mô hình nhận hướng dẫn đã xuất bản theo độ liên quan và trả lời bằng JSON. Giữ một hội thoại mỗi tài khoản và cải tiến giao diện chat.
 
 - 23/11: chỉ tạo tài khoản sau OTP, chỉ đổi email sau OTP gửi tới email mới. Giữ tài khoản cũ hoạt động. Chat chỉ đọc hồ sơ cây được đính kèm và thuộc người đăng nhập. Địa chỉ chính là www.plantcare.io.vn.
+
+- 23/11: API gửi OTP báo số giây còn chờ bằng `Retry-After` để giao diện khóa nút gửi lại đúng thời điểm. Khi dịch vụ email báo lỗi, xóa mã vừa tạo để người dùng có thể gửi lại trong hạn mức. [API](../03-kien-truc/api.md)
+
+- 23/11: tách biểu mẫu đổi email và đổi mật khẩu, dùng định dạng rút gọn khi hiển thị địa chỉ email. Log OTP dùng mã yêu cầu để hỗ trợ kiểm tra trên Render. Gmail thử lại sau khi làm mới access token; Resend chỉ thử lại với cùng khóa idempotency. [Kiểm tra gửi mã](../03-kien-truc/nang-cap-chat-otp.md#kiểm-tra-gửi-mã-trên-render)

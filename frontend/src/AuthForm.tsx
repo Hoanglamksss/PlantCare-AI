@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { ArrowLeft, Eye, EyeOff, Leaf, LockKeyhole, Mail, Phone, UserRound } from 'lucide-react';
 import { displayError, request, type Session } from './api';
+import { useEmailCodeCooldown } from './email-code';
+import { maskEmail } from './email';
 import { Brand, ErrorNotice } from './ui';
 import { newPasswordError } from './password';
 import indoorPlant from './assets/indoor-monstera.webp';
@@ -27,6 +29,7 @@ export function AuthForm({ initialNotice, description, onLogin }: {
   const isRegister = mode === 'register';
   const verifyingEmail = isRegister && Boolean(challenge) && !editingDetails;
   const passwordError = isRegister ? newPasswordError(password) : '';
+  const cooldown = useEmailCodeCooldown(email);
 
   function changeMode() {
     setMode(isRegister ? 'login' : 'register');
@@ -44,14 +47,19 @@ export function AuthForm({ initialNotice, description, onLogin }: {
   async function sendCode() {
     const result = await request<{ challengeId: string }>('/auth/register/send', {
       method: 'POST', body: { email: email.trim() },
+    }).catch((failure: unknown) => {
+      cooldown.handleLimit(failure);
+      throw failure;
     });
+    cooldown.start();
     setChallenge(result.challengeId);
     setEditingDetails(false);
     setCode('');
-    setNotice('Kiểm tra hộp thư đến hoặc thư rác để lấy mã 6 số. Mã có hiệu lực 10 phút.');
+    setNotice('Nếu đây là email đăng ký mới, hãy kiểm tra hộp thư đến hoặc thư rác. Mã có hiệu lực 10 phút.');
   }
 
   async function resend() {
+    if (busy || cooldown.remaining) return;
     setBusy(true);
     setError('');
     try { await sendCode(); } catch (failure) { setError(displayError(failure)); } finally { setBusy(false); }
@@ -59,7 +67,7 @@ export function AuthForm({ initialNotice, description, onLogin }: {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || (isRegister && !challenge && cooldown.remaining)) return;
     if (isRegister && !displayName.trim()) { setError('Hãy nhập tên bạn muốn hiển thị.'); return; }
     if (isRegister && passwordError) { setError(passwordError); return; }
     setBusy(true);
@@ -104,7 +112,7 @@ export function AuthForm({ initialNotice, description, onLogin }: {
         <li aria-current={!verifyingEmail ? 'step' : undefined}>1. Thông tin tài khoản</li>
         <li aria-current={verifyingEmail ? 'step' : undefined}>2. Xác minh email</li>
       </ol>}
-      <p className="auth-description">{verifyingEmail ? <>Nhập mã 6 số đã gửi đến <strong>{email.trim()}</strong> để tạo tài khoản.</>
+      <p className="auth-description">{verifyingEmail ? <>Nhập mã 6 số từ hộp thư <strong>{maskEmail(email.trim())}</strong> để tạo tài khoản.</>
         : isRegister ? 'Xác minh email bằng mã OTP để hoàn tất đăng ký.' : description ?? 'Đăng nhập để cùng cây lớn lên mỗi ngày.'}</p>
       {notice && <p className="notice" role="status">{notice}</p>}
       <ErrorNotice message={error} />
@@ -149,10 +157,13 @@ export function AuthForm({ initialNotice, description, onLogin }: {
             </label>
             <div className="auth-otp-actions">
               <button type="button" className="text-button" onClick={() => { setEditingDetails(true); setError(''); setNotice(''); }}>Sửa thông tin</button>
-              <button type="button" className="text-button" onClick={() => void resend()}>Gửi lại mã</button>
+              <button type="button" className="text-button" disabled={cooldown.remaining > 0} onClick={() => void resend()}>
+                {cooldown.remaining ? `Gửi lại sau ${cooldown.remaining} giây` : 'Gửi lại mã'}
+              </button>
             </div>
           </>}
-          <button type="submit" className="button button-primary auth-submit">{busy ? 'Đang xử lý…' : isRegister ? verifyingEmail ? 'Xác minh và tạo tài khoản' : challenge ? 'Tiếp tục xác minh' : 'Gửi mã xác minh' : 'Đăng nhập'}</button>
+          {isRegister && !challenge && cooldown.remaining > 0 && <p className="field-hint">Có thể gửi lại sau {cooldown.remaining} giây.</p>}
+          <button type="submit" className="button button-primary auth-submit" disabled={isRegister && !challenge && cooldown.remaining > 0}>{busy ? 'Đang xử lý…' : isRegister ? verifyingEmail ? 'Xác minh và tạo tài khoản' : challenge ? 'Tiếp tục xác minh' : 'Gửi mã xác minh' : 'Đăng nhập'}</button>
         </fieldset>
       </form>
       <div className="auth-toggle">

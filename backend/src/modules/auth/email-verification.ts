@@ -3,11 +3,10 @@ import { Router, type RequestHandler } from 'express';
 import type { Pool } from 'pg';
 import { z } from 'zod';
 import { HttpError } from '../../errors.js';
-import { AttemptWindow } from './throttle.js';
-import { configuredVerificationEmail } from './verification-email-provider.js';
+import { AttemptWindow, emailCodeLimit, emailCodeResendSeconds } from './throttle.js';
+import { configuredVerificationEmail, logVerificationEmailAccepted, verificationEmailUnavailable } from './verification-email-provider.js';
 
 const invalidCode = () => new HttpError(400, 'EMAIL_CODE_INVALID', 'Mã sai, đã hết hạn hoặc đã dùng. Hãy kiểm tra mã mới nhất.');
-const mailUnavailable = () => new HttpError(503, 'EMAIL_DELIVERY_UNAVAILABLE', 'Chưa thể gửi email xác minh. Vui lòng thử lại sau.');
 
 export function createEmailVerificationRouter(pool: Pool, secret: string, requireSession: RequestHandler, requireCsrf: RequestHandler) {
   const router = Router();
@@ -29,12 +28,11 @@ export function createEmailVerificationRouter(pool: Pool, secret: string, requir
   });
 
   router.post('/auth/email-verification/send', ...scope, async (req, res) => {
-    if (!sendEmail) throw mailUnavailable();
+    if (!sendEmail) throw verificationEmailUnavailable(res.locals.requestId);
     const { id: owner, email } = req.auth!.user;
     const cooldown = Math.max(sends.retryAfter(owner), ipSends.retryAfter(req.ip ?? 'unknown'));
     if (cooldown) {
-      res.set('Retry-After', String(cooldown));
-      throw new HttpError(429, 'EMAIL_CODE_LIMIT', 'Bạn đã gửi nhiều yêu cầu. Hãy thử lại sau.');
+      throw emailCodeLimit(cooldown, 'Bạn đã gửi nhiều yêu cầu. Hãy thử lại sau.');
     }
 
     const id = randomUUID();
@@ -47,16 +45,17 @@ export function createEmailVerificationRouter(pool: Pool, secret: string, requir
         SET id = EXCLUDED.id, email = EXCLUDED.email, code_digest = EXCLUDED.code_digest,
           sent_at = EXCLUDED.sent_at, expires_at = EXCLUDED.expires_at, attempts = 0
         WHERE email_verification_codes.email <> EXCLUDED.email
-          OR email_verification_codes.sent_at <= clock_timestamp() - interval '60 seconds'
-    `, [owner, id, digest(owner, id, email, code), email]);
+          OR email_verification_codes.sent_at <= clock_timestamp() - $5::int * interval '1 second'
+    `, [owner, id, digest(owner, id, email, code), email, emailCodeResendSeconds]);
     if (!rowCount) {
-      const { rows: [account] } = await pool.query<{ verified: boolean }>(
-        'SELECT email_xac_minh_luc IS NOT NULL AS verified FROM accounts WHERE id = $1 AND email = $2',
-        [owner, email],
-      );
+      const { rows: [account] } = await pool.query<{ verified: boolean; retry_after: number }>(`
+        SELECT a.email_xac_minh_luc IS NOT NULL AS verified,
+          GREATEST(1, CEIL($3::int + EXTRACT(EPOCH FROM c.sent_at - clock_timestamp())))::int AS retry_after
+        FROM accounts a LEFT JOIN email_verification_codes c ON c.tai_khoan_id = a.id AND c.email = a.email
+        WHERE a.id = $1 AND a.email = $2
+      `, [owner, email, emailCodeResendSeconds]);
       if (account?.verified) { res.json({ verified: true }); return; }
-      res.set('Retry-After', '60');
-      throw new HttpError(429, 'EMAIL_CODE_LIMIT', 'Vui lòng đợi một phút trước khi gửi lại mã.');
+      throw emailCodeLimit(account?.retry_after ?? 1, 'Vui lòng đợi trước khi gửi lại mã.');
     }
 
     try {
@@ -64,9 +63,12 @@ export function createEmailVerificationRouter(pool: Pool, secret: string, requir
         id, to: email, subject: 'Mã xác minh email PlantCare',
         text: `Mã xác minh PlantCare của bạn là ${code}. Mã có hiệu lực trong 10 phút và chỉ dùng một lần.`,
       });
-    } catch {
-      throw mailUnavailable();
+    } catch (failure) {
+      const unavailable = verificationEmailUnavailable(res.locals.requestId, failure);
+      await pool.query('DELETE FROM email_verification_codes WHERE tai_khoan_id = $1 AND id = $2', [owner, id]);
+      throw unavailable;
     }
+    logVerificationEmailAccepted(res.locals.requestId);
     res.json({ verified: false, sent: true });
   });
 

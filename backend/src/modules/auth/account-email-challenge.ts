@@ -2,8 +2,8 @@ import { createHmac, randomInt, randomUUID, timingSafeEqual } from 'node:crypto'
 import type { Pool, PoolClient } from 'pg';
 import { z } from 'zod';
 import { HttpError } from '../../errors.js';
-import { AttemptWindow } from './throttle.js';
-import { configuredVerificationEmail } from './verification-email-provider.js';
+import { AttemptWindow, emailCodeLimit, emailCodeResendSeconds } from './throttle.js';
+import { configuredVerificationEmail, logVerificationEmailAccepted, verificationEmailUnavailable } from './verification-email-provider.js';
 
 type Scope = { purpose: 'register' | 'change'; subject: string; email: string };
 export const emailProof = { challengeId: z.uuid().transform(id => id.toLowerCase()), code: z.string().regex(/^\d{6}$/) };
@@ -13,15 +13,15 @@ export const invalidEmailProof = () => new HttpError(400, 'EMAIL_CODE_INVALID', 
 
 export function accountEmailChallenges(pool: Pool, secret: string) {
   const deliver = configuredVerificationEmail();
-  const unavailable = () => new HttpError(503, 'EMAIL_DELIVERY_UNAVAILABLE', 'Chưa thể gửi mã xác minh. Vui lòng thử lại sau.');
   const digest = (scope: Scope, id: string, code: string) => createHmac('sha256', secret)
     .update(JSON.stringify(['account-email', scope.purpose, scope.subject, scope.email, id, code])).digest('hex');
 
   return {
-    async send(scope: Scope, ip: string) {
-      if (!deliver) throw unavailable();
-      if (ipLimit.retryAfter(ip) || emailLimit.retryAfter(scope.email)) {
-        throw new HttpError(429, 'EMAIL_CODE_LIMIT', 'Bạn đã gửi nhiều yêu cầu. Hãy thử lại sau.');
+    async send(scope: Scope, ip: string, requestId: string) {
+      if (!deliver) throw verificationEmailUnavailable(requestId);
+      const cooldown = ipLimit.retryAfter(ip) || emailLimit.retryAfter(scope.email);
+      if (cooldown) {
+        throw emailCodeLimit(cooldown, 'Bạn đã gửi nhiều yêu cầu. Hãy thử lại sau.');
       }
       const id = randomUUID();
       const code = String(randomInt(1_000_000)).padStart(6, '0');
@@ -38,17 +38,25 @@ export function accountEmailChallenges(pool: Pool, secret: string) {
         ON CONFLICT (purpose, subject, email) DO UPDATE
           SET id = EXCLUDED.id, code_digest = EXCLUDED.code_digest, expires_at = EXCLUDED.expires_at,
             sent_at = EXCLUDED.sent_at, attempts = 0
-          WHERE account_email_challenges.sent_at <= clock_timestamp() - interval '60 seconds'
-      `, [id, scope.purpose, scope.subject, scope.email, digest(scope, id, code)]);
-      if (!reservation.rowCount) throw new HttpError(429, 'EMAIL_CODE_LIMIT', 'Vui lòng đợi một phút trước khi gửi lại mã.');
+          WHERE account_email_challenges.sent_at <= clock_timestamp() - $6::int * interval '1 second'
+      `, [id, scope.purpose, scope.subject, scope.email, digest(scope, id, code), emailCodeResendSeconds]);
+      if (!reservation.rowCount) {
+        const { rows: [entry] } = await pool.query<{ retry_after: number }>(`
+          SELECT GREATEST(1, CEIL($4::int + EXTRACT(EPOCH FROM sent_at - clock_timestamp())))::int AS retry_after
+          FROM account_email_challenges WHERE purpose = $1 AND subject = $2 AND email = $3
+        `, [scope.purpose, scope.subject, scope.email, emailCodeResendSeconds]);
+        throw emailCodeLimit(entry?.retry_after ?? 1, 'Vui lòng đợi trước khi gửi lại mã.');
+      }
 
       try {
         await deliver({ id, to: scope.email, subject: 'Mã xác minh PlantCare',
           text: `Mã ${scope.purpose === 'register' ? 'đăng ký' : 'đổi email'} PlantCare là ${code}. Mã có hiệu lực trong 10 phút và chỉ dùng một lần.` });
-      } catch {
+      } catch (failure) {
+        const unavailable = verificationEmailUnavailable(requestId, failure);
         await pool.query('DELETE FROM account_email_challenges WHERE id = $1', [id]);
-        throw unavailable();
+        throw unavailable;
       }
+      logVerificationEmailAccepted(requestId);
       return id;
     },
     async consume(client: PoolClient, scope: Scope, proof: { challengeId: string; code: string }) {

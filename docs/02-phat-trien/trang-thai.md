@@ -44,3 +44,9 @@
 - 23/11: cập nhật link www.plantcare.io.vn và tài liệu pipeline đầy đủ. Chat đọc cây chủ động đính kèm, hoạt động gần đây và kết quả ảnh có cùng cây. Đăng ký và đổi email phải xác nhận OTP, giữ đăng nhập cho tài khoản cũ. Build frontend/backend và kiểm tra route với dữ liệu giả lập đã qua. Scripts smoke dùng fixture OTP local; cần chạy migration 0013, smoke với Compose và gửi OTP thật trên staging. [Pipeline, database và nghiệm thu](../03-kien-truc/pipeline-chat-va-anh.md).
 
 - Bổ sung ca smoke cho OTP sai địa chỉ, hết hạn, dùng lại và cho luồng hỏi tiếp từ ảnh của cây đã lưu. Đã kiểm tra cú pháp script và cấu hình Compose. Docker daemon chưa khả dụng ở máy hiện tại để chạy toàn bộ smoke.
+
+- 23/11: thêm đếm ngược gửi lại OTP khi đăng ký, đổi email và xác minh trong Hồ sơ. Sửa bước gửi mã đầu tiên khi đổi email và xóa mã vừa tạo khi dịch vụ gửi mail báo lỗi. Build frontend/backend và kiểm tra các route với DB/dịch vụ email giả lập đã qua. Cần triển khai và thử với PostgreSQL cùng hộp thư thật trên staging.
+
+- 23/11: đã chuẩn bị cấu hình local và mở Docker Desktop. Phiên lệnh bị từ chối kết nối Docker Engine nên chưa khởi động được Compose. Vite báo sẵn sàng ở cổng 5173 nhưng lượt mở trang chưa kết nối được. Cần chạy Compose từ phiên Windows có quyền Docker rồi kiểm tra `/health/ready`.
+
+- 23/11: tách đổi email và mật khẩu, che email trong giao diện, bổ sung xử lý lỗi gửi Gmail/Resend và log theo mã yêu cầu. Build hai ứng dụng, kiểm tra render biểu mẫu, che email và gửi OTP giả lập đã qua. Trang chủ online mở được. Bản sửa còn ở mã nguồn local, cần quyền GitHub/Render để triển khai và thử gửi OTP thật. [Kiểm tra trên Render](../03-kien-truc/nang-cap-chat-otp.md#kiểm-tra-gửi-mã-trên-render)

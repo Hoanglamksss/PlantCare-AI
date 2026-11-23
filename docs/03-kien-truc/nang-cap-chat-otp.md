@@ -42,7 +42,20 @@ GMAIL_REFRESH_TOKEN=<refresh token>
 
 Với OAuth External ở chế độ **Testing**, refresh token dùng scope Gmail hết hạn sau 7 ngày. Khi tiếp tục thử nghiệm, cấp lại token và cập nhật Render. Trước khi vận hành lâu dài, xử lý trạng thái phát hành và các yêu cầu xác minh mà Google Cloud hiển thị cho scope nhạy cảm. Xem [chính sách hết hạn OAuth](https://developers.google.com/identity/protocols/oauth2#expiration).
 
-OTP có 6 chữ số, hiệu lực 10 phút, dùng một lần, tối đa 5 lần thử và chờ ít nhất 60 giây để gửi lại. Đổi email sẽ bỏ trạng thái xác minh trước đó. Số điện thoại là thông tin liên hệ tùy chọn.
+OTP có 6 chữ số, hiệu lực 10 phút, dùng một lần, tối đa 5 lần thử và chờ ít nhất 60 giây để gửi lại. Đổi email chỉ hoàn tất sau khi xác minh địa chỉ mới. Số điện thoại là thông tin liên hệ tùy chọn.
+
+### Kiểm tra gửi mã trên Render
+
+Trong **Logs**, lọc theo `[otp-mail]` hoặc `request_id`. `stage=accepted` nghĩa là nhà cung cấp đã nhận yêu cầu gửi. Khi có lỗi, log ghi bước lỗi, nhóm lỗi và mã HTTP nếu có. Địa chỉ nhận, OTP, khóa và nội dung phản hồi của nhà cung cấp không được ghi.
+
+| Dấu hiệu trong log | Cần kiểm tra |
+| --- | --- |
+| `reason=configuration` | Kiểm tra `OTP_EMAIL_PROVIDER` và các biến tương ứng trong **Environment**. Sau khi lưu, triển khai bản có cấu hình mới. |
+| `stage=gmail_oauth reason=invalid_grant` | Cấp lại refresh token từ hộp thư gửi và cập nhật `GMAIL_REFRESH_TOKEN` riêng trên Render. |
+| `stage=gmail_send reason=rejected status=403` | Kiểm tra Gmail API đã bật và quyền `gmail.send` đã được cấp. |
+| `stage=resend_send reason=rejected status=403` | Kiểm tra domain đã xác minh và `OTP_EMAIL_FROM` dùng địa chỉ trên domain đó. |
+
+Gmail tự làm mới access token và thử gửi lại một lần nếu API gửi trả 401. Resend thử lại một lần khi API trả 5xx, dùng cùng khóa idempotency. Sau khi backend chạy bản mới, thử đăng ký và đổi email với hộp thư kiểm thử do nhóm kiểm soát.
 
 ### Giữ Resend nếu cần
 
@@ -52,7 +65,7 @@ OTP có 6 chữ số, hiệu lực 10 phút, dùng một lần, tối đa 5 lầ
 
 - Gõ “alo”, “la ca chua bi vang”, một câu viết sai gây mơ hồ và câu hỏi ngoài phạm vi. Kiểm tra chào hỏi, “Ý bạn là…?”, hỏi lại và từ chối đúng ngữ cảnh.
 - Gửi ảnh kèm câu hỏi, xem thẻ kết quả, hỏi “mai lam gi”, tải lại trang. Gửi ảnh thứ hai, chọn ảnh thứ nhất để hỏi tiếp. Tài khoản thứ hai không được đọc kết quả hay ảnh qua URL cũ.
-- Thử OTP sai, hết hạn, gửi lại, nhập đúng và dùng lại, đổi email. Xác minh yêu cầu đăng bài được bật đúng theo cấu hình.
+- Thử OTP sai, hết hạn, gửi lại, nhập đúng và dùng lại. Trong Hồ sơ, kiểm tra **Đổi mật khẩu** và **Đổi email** là hai biểu mẫu riêng, và địa chỉ nhận hiển thị dạng `abc****@gmail.com` ở bước nhập OTP. Xác minh yêu cầu đăng bài được bật đúng theo cấu hình.
 - Đăng bài có ảnh bằng tài khoản thứ nhất, kiểm tra tài khoản thứ hai thấy ảnh sau khi tải lại. Khi Admin ẩn bài, kiểm tra tài khoản thường mất quyền đọc ảnh.
 
 [Kế hoạch chuyển sang plantcare.io.vn và gửi OTP từ tên miền dự án](../../deploy/plantcare-io-vn.md).

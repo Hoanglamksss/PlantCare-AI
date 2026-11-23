@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowLeft, Eye, EyeOff, Search, ShieldCheck, UsersRound } from 'lucide-react';
 import { displayError, request, type Session } from './api';
 import { usePage } from './collections';
+import { maskEmail } from './email';
 import { Dialog, ErrorNotice } from './ui';
 import './admin.css';
 
@@ -70,7 +71,7 @@ function Accounts({ session, onExpired }: Controls) {
       <caption className="sr-only">Danh sách tài khoản</caption>
       <thead><tr><th scope="col">Tài khoản</th><th scope="col">Liên hệ</th><th scope="col">Quyền</th><th scope="col">Trạng thái</th><th scope="col">Thao tác</th></tr></thead>
       <tbody>{page.items.map((account) => <tr key={account.id}>
-        <td><strong>{account.displayName || 'Chưa đặt tên'}</strong><small>{account.email}</small></td>
+        <td><strong>{account.displayName || 'Chưa đặt tên'}</strong><small>{maskEmail(account.email)}</small></td>
         <td>{account.phone || 'Chưa cập nhật'}</td><td>{account.role === 'admin' ? 'Admin' : 'User'}</td>
         <td><span className="admin-status" data-disabled={account.disabled}>{account.disabled ? 'Đã khóa' : 'Đang hoạt động'}</span></td>
         <td><button className="text-button" disabled={account.id === session.user.id} onClick={() => { setSelected(account); setActionError(''); }}>{account.disabled ? 'Mở khóa' : 'Khóa tài khoản'}</button></td>
@@ -78,7 +79,7 @@ function Accounts({ session, onExpired }: Controls) {
     </table>{!page.items.length && <p className="admin-empty">Không tìm thấy tài khoản phù hợp.</p>}</div>}
     {page?.nextCursor && <button className="button button-secondary load-more" disabled={loadingMore} onClick={() => void loadMore()}>{loadingMore ? 'Đang tải…' : 'Xem thêm'}</button>}
     {selected && <Dialog title={selected.disabled ? 'Mở khóa tài khoản' : 'Khóa tài khoản'} busy={busy} onDismiss={() => setSelected(null)}>
-      <p className="admin-confirm-copy">{selected.email}{selected.disabled ? ' sẽ có thể đăng nhập trở lại.' : ' sẽ bị thu hồi các phiên đăng nhập và tạm ngừng truy cập.'}</p>
+      <p className="admin-confirm-copy">{maskEmail(selected.email)}{selected.disabled ? ' sẽ có thể đăng nhập trở lại.' : ' sẽ bị thu hồi các phiên đăng nhập và tạm ngừng truy cập.'}</p>
       <ErrorNotice message={actionError} />
       <div className="form-actions"><button className="button button-secondary" disabled={busy} onClick={() => setSelected(null)}>Hủy</button><button className="button button-primary" disabled={busy} onClick={() => void save()}>{busy ? 'Đang lưu…' : 'Xác nhận'}</button></div>
     </Dialog>}
@@ -110,7 +111,7 @@ function Posts({ session, onExpired }: Controls) {
     <ErrorNotice message={error} />
     {!page && (error ? <button className="button button-secondary" onClick={reload}>Thử lại</button> : <p role="status">Đang tải bài viết…</p>)}
     <div className="admin-posts">{page?.items.map((post) => <article className="admin-post" key={post.id}>
-      <header><div><h2>{post.title}</h2><p>{post.author} · {post.email}</p></div><span className="admin-status" data-disabled={post.hidden}>{post.hidden ? 'Đã ẩn' : 'Hiển thị'}</span></header>
+      <header><div><h2>{post.title}</h2><p>{post.author} · {maskEmail(post.email)}</p></div><span className="admin-status" data-disabled={post.hidden}>{post.hidden ? 'Đã ẩn' : 'Hiển thị'}</span></header>
       <p className="admin-post-note">{post.note || 'Bài viết có ảnh.'}</p>
       <footer><time dateTime={post.createdAt}>{dateTime.format(new Date(post.createdAt))}</time><button className="button button-secondary" onClick={() => { setSelected(post); setActionError(''); }}>{post.hidden ? <Eye size={16} aria-hidden="true" /> : <EyeOff size={16} aria-hidden="true" />}{post.hidden ? 'Bỏ ẩn' : 'Ẩn bài viết'}</button></footer>
     </article>)}</div>

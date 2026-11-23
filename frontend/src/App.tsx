@@ -9,6 +9,7 @@ import { Garden } from './Garden';
 import { Home } from './Home';
 import { AccountAvatar, ProfileSettings } from './ProfileSettings';
 import { AuthForm } from './AuthForm';
+import { maskEmail } from './email';
 import { Brand, ErrorNotice } from './ui';
 import { Schedule } from './Schedule';
 import { AdminPanel } from './AdminPanel';
@@ -212,7 +213,7 @@ export function App() {
               <Notifications key={session.user.id} session={session} onExpired={expireSession} />
               <a className="account-link" href="#profile" aria-label="Hồ sơ cá nhân">
                 <AccountAvatar url={profile?.avatarUrl} />
-                <span>{profile?.displayName ?? session.user.email}</span>
+                <span>{profile?.displayName ?? maskEmail(session.user.email)}</span>
               </a>
               {session.user.role === 'admin' && <a className="header-admin-link" href="#admin" aria-label="Mở trang quản trị"><ShieldCheck size={21} aria-hidden="true" /></a>}
             </div>

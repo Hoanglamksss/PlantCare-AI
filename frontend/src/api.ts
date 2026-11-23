@@ -61,7 +61,12 @@ export type CareLog = {
 export type Page<T> = { items: T[]; nextCursor: string | null };
 
 export class ApiError extends Error {
-  constructor(public readonly status: number, message: string) {
+  constructor(
+    public readonly status: number,
+    message: string,
+    public readonly code?: string,
+    public readonly retryAfter?: number,
+  ) {
     super(message);
   }
 }
@@ -92,11 +97,14 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => null) as { message?: unknown } | null;
+    const error = await response.json().catch(() => null) as { message?: unknown; code?: unknown } | null;
     const message = response.status < 500 && typeof error?.message === 'string'
       ? error.message
       : 'Dịch vụ đang bận. Vui lòng thử lại sau.';
-    throw new ApiError(response.status, message);
+    const code = typeof error?.code === 'string' ? error.code : undefined;
+    const seconds = Number(response.headers.get('Retry-After'));
+    const retryAfter = Number.isSafeInteger(seconds) && seconds > 0 ? seconds : undefined;
+    throw new ApiError(response.status, message, code, retryAfter);
   }
 
   if (response.status === 204) return undefined as T;
@@ -106,6 +114,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
 export function displayError(error: unknown, onExpired?: () => void) {
   if (error instanceof ApiError) {
     if (error.status === 401) onExpired?.();
+    if (error.code === 'EMAIL_DELIVERY_UNAVAILABLE') return 'Chưa gửi được mã xác minh. Vui lòng thử lại sau.';
     return error.message;
   }
 

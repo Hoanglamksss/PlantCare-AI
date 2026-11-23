@@ -41,7 +41,9 @@ export const profilePaths = {
       security: session, parameters: [csrf],
       requestBody: body({ email, currentPassword: { ...password, minLength: 1 } }, ['email', 'currentPassword']),
       responses: { '200': { description: 'Mã yêu cầu xác minh.', content: json({ $ref: '#/components/schemas/EmailChallenge' }) },
-        '400': invalid, '401': unauthorized, '403': forbidden, '409': error('Email đã dùng.'), '429': error('Vượt giới hạn gửi.'), '503': error('Dịch vụ gửi email chưa sẵn sàng.') },
+        '400': invalid, '401': unauthorized, '403': forbidden, '409': error('Email đã dùng.'),
+        '429': { ...error('Vượt giới hạn gửi.'), headers: { 'Retry-After': { description: 'Số giây còn phải chờ.', schema: { type: 'integer', minimum: 1 } } } },
+        '503': error('Dịch vụ gửi email chưa sẵn sàng.') },
     },
   },
   '/profile/credentials': {

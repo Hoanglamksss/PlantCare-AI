@@ -21,7 +21,10 @@ const authErrors = { '401': response('Cần đăng nhập.', 'Error') };
 const invalidInput = { '400': response('Dữ liệu không hợp lệ.', 'Error') };
 const mutationErrors = { '403': response('Origin hoặc CSRF token không hợp lệ.', 'Error') };
 const notFound = { '404': response('Không tìm thấy cây.', 'Error') };
-const authLimit = { '429': response('Vượt giới hạn yêu cầu xác thực.', 'Error') };
+const authLimit = { '429': {
+  ...response('Vượt giới hạn yêu cầu xác thực.', 'Error'),
+  headers: { 'Retry-After': { description: 'Số giây còn phải chờ.', schema: { type: 'integer', minimum: 1 } } },
+} };
 
 const uuid = { type: 'string', format: 'uuid' };
 const date = { type: 'string', format: 'date', nullable: true };
@@ -80,7 +83,8 @@ export const openapi = {
       post: {
         operationId: 'sendEmailCode', tags: ['Tài khoản'], summary: 'Gửi mã xác minh email', security: session,
         parameters: [parameter('Csrf')],
-        responses: { '200': response('Mã đã gửi hoặc email đã xác minh.', 'EmailCodeStatus'), ...authErrors, ...mutationErrors, ...authLimit },
+        responses: { '200': response('Mã đã gửi hoặc email đã xác minh.', 'EmailCodeStatus'), ...authErrors, ...mutationErrors, ...authLimit,
+          '503': response('Dịch vụ gửi email chưa sẵn sàng.', 'Error') },
       },
     },
     '/auth/email-verification/confirm': {

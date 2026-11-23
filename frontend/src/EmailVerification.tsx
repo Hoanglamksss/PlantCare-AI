@@ -1,5 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { displayError, request, type Session } from './api';
+import { useEmailCodeCooldown } from './email-code';
+import { maskEmail } from './email';
 import { ErrorNotice } from './ui';
 
 type Status = { verified: boolean; enabled: boolean };
@@ -12,6 +14,7 @@ export function EmailVerification({ session, onExpired }: { session: Session; on
   const [notice, setNotice] = useState('');
   const [version, setVersion] = useState(0);
   const csrfToken = session.csrfToken;
+  const cooldown = useEmailCodeCooldown(session.user.email);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -22,7 +25,7 @@ export function EmailVerification({ session, onExpired }: { session: Session; on
   }, [onExpired, version]);
 
   async function submit(action: 'send' | 'confirm') {
-    if (busy) return;
+    if (busy || (action === 'send' && cooldown.remaining)) return;
     setBusy(true);
     setError('');
     setNotice('');
@@ -34,9 +37,11 @@ export function EmailVerification({ session, onExpired }: { session: Session; on
         setStatus((current) => current && { ...current, verified: true });
         setCode('');
       } else {
+        if (action === 'send') cooldown.start();
         setNotice('Đã gửi mã. Kiểm tra hộp thư đến hoặc thư rác.');
       }
     } catch (failure) {
+      if (action === 'send') cooldown.handleLimit(failure);
       setError(displayError(failure, onExpired));
     } finally {
       setBusy(false);
@@ -58,12 +63,14 @@ export function EmailVerification({ session, onExpired }: { session: Session; on
     {status && !status.verified && <>
       {!status.enabled && <p>Gửi mã xác minh hiện chưa khả dụng.</p>}
       {status.enabled && <form className="form-stack" onSubmit={confirm}>
-        <p>Mã được gửi đến {session.user.email} và có hiệu lực 10 phút.</p>
+        <p>Mã được gửi đến <strong>{maskEmail(session.user.email)}</strong> và có hiệu lực 10 phút.</p>
         {notice && <p className="notice" role="status">{notice}</p>}
         <label className="field">Mã 6 chữ số<input type="text" inputMode="numeric" autoComplete="one-time-code"
           value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} disabled={busy} /></label>
         <div className="form-actions">
-          <button type="button" className="button button-secondary" disabled={busy} onClick={() => void submit('send')}>Gửi mã</button>
+          <button type="button" className="button button-secondary" disabled={busy || cooldown.remaining > 0} onClick={() => void submit('send')}>
+            {cooldown.remaining ? `Gửi lại sau ${cooldown.remaining} giây` : 'Gửi mã'}
+          </button>
           <button type="submit" className="button button-primary" disabled={busy || code.length !== 6}>Xác minh</button>
         </div>
       </form>}

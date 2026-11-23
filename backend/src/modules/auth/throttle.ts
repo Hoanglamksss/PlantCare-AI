@@ -1,3 +1,11 @@
+import { HttpError } from '../../errors.js';
+
+export const emailCodeResendSeconds = 60;
+
+export function emailCodeLimit(seconds: number, message: string) {
+  return new HttpError(429, 'EMAIL_CODE_LIMIT', message, seconds);
+}
+
 interface WindowEntry {
   used: number;
   expiresAt: number;

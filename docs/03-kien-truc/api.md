@@ -122,3 +122,5 @@ Thông báo trả `id,title,body,plantId,createdAt,readAt`; `unreadCount` tính 
 Chưa triển khai hoàn thành/bỏ qua task, `care_occurrences`, tự ghi nhật ký từ lịch, preferences, quiet hours, timezone tùy chọn hoặc Browser Push. Không coi thông báo đã đọc là hoàn thành chăm sóc.
 
 **OTP đăng ký và đổi email**: POST /auth/register/send nhận email, trả challengeId. POST /auth/register yêu cầu cả challengeId và code. POST /profile/credentials/email/send cần phiên, CSRF, email mới và currentPassword. PATCH /profile/credentials cần thêm challengeId và code khi đổi email. POST /chat có thể nhận plantId của cây đang theo dõi thuộc tài khoản. Xem [pipeline và quyền](pipeline-chat-va-anh.md).
+
+Các API gửi mã đăng ký, đổi email và xác minh email trong Hồ sơ trả `429 EMAIL_CODE_LIMIT` cùng header `Retry-After` tính bằng giây khi đang trong thời gian chờ hoặc vượt hạn mức. Nếu dịch vụ email báo lỗi, API trả `503 EMAIL_DELIVERY_UNAVAILABLE` và xóa yêu cầu gửi vừa thất bại.

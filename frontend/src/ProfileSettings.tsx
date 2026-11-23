@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Camera, ChevronRight, ImagePlus, LockKeyhole, LogOut, UserRound } from 'lucide-react';
+import { Camera, ChevronRight, ImagePlus, LockKeyhole, LogOut, Mail, UserRound } from 'lucide-react';
 import { displayError, request, type AccountProfile, type Session } from './api';
+import { ChangeEmailDialog, ChangePasswordDialog } from './AccountSecurityDialogs';
+import { maskEmail } from './email';
 import { acceptedPhotoTypes, readPhoto, usePhotoPreview, validatePhoto } from './photo';
 import { Dialog, ErrorNotice } from './ui';
 import { EmailVerification } from './EmailVerification';
-import { newPasswordError } from './password';
 import './profile.css';
 
 export function AccountAvatar({ url, className }: { url?: string | null; className?: string }) {
@@ -35,7 +36,7 @@ interface Props {
 export function ProfileSettings({ session, profile, loadError, logoutError, loggingOut, onRetry, onLogout, onExpired, onSaved, onCredentialsChanged }: Props) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
-  const [credentialsOpen, setCredentialsOpen] = useState(false);
+  const [securityDialog, setSecurityDialog] = useState<'email' | 'password' | null>(null);
   const [action, setAction] = useState<'details' | 'avatar' | 'remove' | null>(null);
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
@@ -76,12 +77,12 @@ export function ProfileSettings({ session, profile, loadError, logoutError, logg
     } catch (failure) { setError(displayError(failure, onExpired)); } finally { setAction(null); }
   }
 
-  function openEditor(kind: 'details' | 'avatar' | 'credentials') {
+  function openEditor(kind: 'details' | 'avatar' | 'email' | 'password') {
     setError('');
     setNotice('');
     if (kind === 'details') setDetailsOpen(true);
     if (kind === 'avatar') setAvatarOpen(true);
-    if (kind === 'credentials') setCredentialsOpen(true);
+    if (kind === 'email' || kind === 'password') setSecurityDialog(kind);
   }
 
   return <div className="profile-page">
@@ -97,7 +98,7 @@ export function ProfileSettings({ session, profile, loadError, logoutError, logg
         </button>
         <div className="profile-identity-text">
           <h2>{profile.displayName || 'Người trồng cây'}</h2>
-          <p>{profile.email}</p>
+          <p>{maskEmail(profile.email)}</p>
           <span className="profile-role">{session.user.role === 'admin' ? 'Quản trị viên' : 'Thành viên'}</span>
         </div>
       </section>
@@ -114,9 +115,14 @@ export function ProfileSettings({ session, profile, loadError, logoutError, logg
             <span><strong>Ảnh đại diện</strong><small>Chọn hình ảnh cho hồ sơ của bạn</small></span>
             <ChevronRight size={19} aria-hidden="true" />
           </button>
-          <button type="button" className="profile-setting-row" onClick={() => openEditor('credentials')} disabled={loggingOut}>
+          <button type="button" className="profile-setting-row" onClick={() => openEditor('email')} disabled={loggingOut}>
+            <span className="profile-setting-icon"><Mail size={21} aria-hidden="true" /></span>
+            <span><strong>Đổi email</strong><small>Xác minh địa chỉ mới bằng mã OTP</small></span>
+            <ChevronRight size={19} aria-hidden="true" />
+          </button>
+          <button type="button" className="profile-setting-row" onClick={() => openEditor('password')} disabled={loggingOut}>
             <span className="profile-setting-icon"><LockKeyhole size={21} aria-hidden="true" /></span>
-            <span><strong>Đăng nhập và bảo mật</strong><small>Đổi email hoặc mật khẩu</small></span>
+            <span><strong>Đổi mật khẩu</strong></span>
             <ChevronRight size={19} aria-hidden="true" />
           </button>
         </div>
@@ -162,78 +168,9 @@ export function ProfileSettings({ session, profile, loadError, logoutError, logg
         </div>
       </div>
     </Dialog>}
-    {credentialsOpen && profile && <CredentialsDialog email={profile.email} csrfToken={csrfToken} onExpired={onExpired}
-      onClose={() => setCredentialsOpen(false)} onSaved={onCredentialsChanged} />}
+    {securityDialog === 'email' && profile && <ChangeEmailDialog email={profile.email} csrfToken={csrfToken} onExpired={onExpired}
+      onClose={() => setSecurityDialog(null)} onSaved={onCredentialsChanged} />}
+    {securityDialog === 'password' && <ChangePasswordDialog csrfToken={csrfToken} onExpired={onExpired}
+      onClose={() => setSecurityDialog(null)} onSaved={onCredentialsChanged} />}
   </div>;
-}
-
-function CredentialsDialog({ email, csrfToken, onClose, onSaved, onExpired }: {
-  email: string; csrfToken: string; onClose: () => void; onSaved: () => void; onExpired: () => void;
-}) {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [challenge, setChallenge] = useState<{ id: string; email: string } | null>(null);
-  const [code, setCode] = useState('');
-  const form = useRef<HTMLFormElement>(null);
-
-  async function sendCode(nextEmail: string, currentPassword: string) {
-    const { challengeId } = await request<{ challengeId: string }>('/profile/credentials/email/send', {
-      method: 'POST', csrfToken, body: { email: nextEmail, currentPassword },
-    });
-    setChallenge({ id: challengeId, email: nextEmail });
-    setCode('');
-  }
-
-  async function resend() {
-    if (busy || !form.current || !challenge) return;
-    const fields = new FormData(form.current);
-    setBusy(true); setError('');
-    try {
-      await sendCode(challenge.email, String(fields.get('currentPassword') ?? ''));
-    } catch (failure) { setError(displayError(failure, onExpired)); } finally { setBusy(false); }
-  }
-
-  async function changeCredentials(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (busy) return;
-    const fields = new FormData(event.currentTarget);
-    const nextEmail = String(fields.get('email') ?? '').trim().toLowerCase();
-    const currentPassword = String(fields.get('currentPassword') ?? '');
-    const newPassword = String(fields.get('newPassword') ?? '');
-    const passwordError = newPasswordError(newPassword, true);
-    if (passwordError) { setError(passwordError); return; }
-    if (newPassword !== String(fields.get('confirmation') ?? '')) { setError('Hai lần nhập mật khẩu mới chưa khớp.'); return; }
-    if (nextEmail === email && !newPassword) { setError('Hãy nhập email mới hoặc mật khẩu mới.'); return; }
-    setBusy(true); setError('');
-    try {
-      await request('/profile/credentials', {
-        method: 'PATCH', csrfToken, body: { currentPassword, ...(nextEmail !== email && { email: nextEmail, challengeId: challenge?.id, code }), ...(newPassword && { newPassword }) },
-      });
-      onSaved();
-    } catch (failure) { setError(displayError(failure, onExpired)); } finally { setBusy(false); }
-  }
-
-  return <Dialog title="Đổi email hoặc mật khẩu" busy={busy} onDismiss={onClose}>
-    <p className="muted profile-dialog-copy">Sau khi lưu, bạn sẽ cần đăng nhập lại trên các thiết bị đang dùng.</p>
-    <ErrorNotice message={error} />
-    <form ref={form} onSubmit={(event) => void changeCredentials(event)}><fieldset disabled={busy} className="form-stack">
-      <label className="field">Email đăng nhập<input name="email" type="email" autoComplete="username" maxLength={254} defaultValue={email} required onChange={() => { setChallenge(null); setCode(''); }} /></label>
-      <label className="field">Mật khẩu hiện tại<input name="currentPassword" type="password" autoComplete="current-password" required maxLength={128} /></label>
-      <label className="field">Mật khẩu mới<input name="newPassword" type="password" autoComplete="new-password" minLength={12} maxLength={128}
-        onInvalid={(event) => event.currentTarget.setCustomValidity(newPasswordError(event.currentTarget.value, true))}
-        onChange={(event) => event.currentTarget.setCustomValidity('')} />
-        <span className="field-hint">Dùng ít nhất 12 ký tự nếu đổi mật khẩu.</span></label>
-      <label className="field">Nhập lại mật khẩu mới<input name="confirmation" type="password" autoComplete="new-password" maxLength={128} /></label>
-      {challenge && <>
-        <p className="notice" role="status">Mã 6 số được gửi đến {challenge.email} và có hiệu lực 10 phút.</p>
-        <label className="field">Mã xác minh email mới
-          <input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" required value={code}
-            onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} />
-        </label>
-        <button type="button" className="text-button" onClick={() => void resend()}>Gửi lại mã</button>
-      </>}
-      <div className="form-actions"><button className="button button-secondary" type="button" onClick={onClose}>Hủy</button>
-        <button className="button button-primary" type="submit">{busy ? 'Đang xử lý…' : challenge ? 'Xác minh và lưu' : 'Tiếp tục'}</button></div>
-    </fieldset></form>
-  </Dialog>;
 }

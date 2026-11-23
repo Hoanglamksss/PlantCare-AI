@@ -148,7 +148,7 @@ export function createAuth(pool: Pool, config: Config) {
     const parsed = z.strictObject({ email: accountEmail }).safeParse(req.body);
     if (!parsed.success) throw new HttpError(400, "INVALID_INPUT", "Hãy nhập địa chỉ email hợp lệ.");
     const { email } = parsed.data;
-    const challengeId = await challenges.send({ purpose: "register", subject: "", email }, req.ip ?? "unknown");
+    const challengeId = await challenges.send({ purpose: "register", subject: "", email }, req.ip ?? "unknown", res.locals.requestId);
     res.json({ challengeId });
   });
 

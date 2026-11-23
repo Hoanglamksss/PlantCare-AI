@@ -223,7 +223,7 @@ export function createProfileRouter(
       if (!account || !await verify(account.passwordHash, password)) {
         throw new HttpError(403, 'INVALID_CURRENT_PASSWORD', 'Mật khẩu hiện tại không đúng.');
       }
-      const challengeId = await challenges.send({ purpose: 'change', subject: user.id, email }, req.ip ?? 'unknown');
+      const challengeId = await challenges.send({ purpose: 'change', subject: user.id, email }, req.ip ?? 'unknown', res.locals.requestId);
       res.json({ challengeId });
     });
   });

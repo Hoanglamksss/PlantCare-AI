@@ -5,6 +5,7 @@ export class HttpError extends Error {
     public readonly status: number,
     public readonly code: string,
     message: string,
+    public readonly retryAfter?: number,
   ) {
     super(message);
   }
@@ -48,5 +49,6 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, next) => {
   const response = asHttpError(error);
   const requestId: string = res.locals.requestId;
   if (response.status >= 500) console.error(`[http] ${response.code} request_id=${requestId}`);
+  if (response.retryAfter !== undefined) res.set('Retry-After', String(response.retryAfter));
   res.status(response.status).json({ code: response.code, message: response.message, requestId });
 };
