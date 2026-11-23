@@ -38,3 +38,8 @@
   .auth-form .auth-toggle { margin-top: 1.6rem; }
   .auth-screen .auth-content { min-height: 0; }
 }
+
+.auth-register-steps { display: flex; flex-wrap: wrap; gap: .45rem; padding: 0; margin: 1rem 0 0; list-style: none; }
+.auth-register-steps li { padding: .35rem .65rem; border: 1px solid var(--border); border-radius: .55rem; color: var(--muted); font-size: .8rem; }
+.auth-register-steps li[aria-current='step'] { background: var(--pale-green); color: var(--green-dark); font-weight: 700; }
+.auth-otp-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; }

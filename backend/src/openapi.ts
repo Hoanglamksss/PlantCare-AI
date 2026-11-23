@@ -53,17 +53,56 @@ export const openapi = {
     ...journalOpenapiPaths,
     ...profilePaths,
     '/chat': {
+      get: {
+        operationId: 'listCareChat', tags: ['Chatbot'], summary: 'Mở hội thoại', security: session,
+        responses: { '200': response('Các lượt gần nhất và cấu hình mô hình.', 'CareHistory'), ...authErrors },
+      },
       post: {
         operationId: 'askCareChat', tags: ['Chatbot'], summary: 'Hỏi cách chăm cây', security: session,
         parameters: [parameter('Csrf')], requestBody: body('CareQuestion'),
         responses: { '200': response('Gợi ý chăm sóc và nguồn tham khảo nếu có.', 'CareAnswer'), ...invalidInput, ...authErrors, ...mutationErrors },
       },
     },
+    '/chat/screening/{id}': {
+      get: {
+        operationId: 'readChatScreening', tags: ['Chatbot'], summary: 'Xem sàng lọc ảnh trong chat', security: session,
+        parameters: [{ name: 'id', in: 'path', required: true, schema: uuid }],
+        responses: { '200': response('Dấu hiệu và kế hoạch theo ngày.', 'ChatScreening'), ...authErrors, ...invalidInput, ...notFound },
+      },
+    },
+    '/auth/email-verification': {
+      get: {
+        operationId: 'getEmailVerification', tags: ['Tài khoản'], summary: 'Xem trạng thái xác minh email', security: session,
+        responses: { '200': response('Trạng thái xác minh và khả năng gửi.', 'EmailVerification'), ...authErrors },
+      },
+    },
+    '/auth/email-verification/send': {
+      post: {
+        operationId: 'sendEmailCode', tags: ['Tài khoản'], summary: 'Gửi mã xác minh email', security: session,
+        parameters: [parameter('Csrf')],
+        responses: { '200': response('Mã đã gửi hoặc email đã xác minh.', 'EmailCodeStatus'), ...authErrors, ...mutationErrors, ...authLimit },
+      },
+    },
+    '/auth/email-verification/confirm': {
+      post: {
+        operationId: 'confirmEmailCode', tags: ['Tài khoản'], summary: 'Xác minh email bằng mã 6 chữ số', security: session,
+        parameters: [parameter('Csrf')], requestBody: body('EmailCode'),
+        responses: { '200': response('Email đã xác minh.', 'EmailCodeStatus'), ...invalidInput, ...authErrors, ...mutationErrors },
+      },
+    },
+    '/auth/register/send': {
+      post: {
+        operationId: 'sendRegistrationCode', tags: ['Tài khoản'], summary: 'Gửi mã đăng ký',
+        requestBody: body('EmailChallengeRequest'),
+        responses: { '200': response('Trả mã định danh của yêu cầu xác minh.', 'EmailChallenge'), ...invalidInput, ...mutationErrors, ...authLimit,
+          '503': response('Dịch vụ gửi email chưa sẵn sàng.', 'Error') },
+      },
+    },
     '/auth/register': {
       post: {
         operationId: 'register', tags: ['Tài khoản'], summary: 'Đăng ký tài khoản',
         requestBody: body('Register'),
-        responses: { '200': response('Thông báo chung cho cả email mới và đã dùng.', 'Message'), ...invalidInput, ...mutationErrors, ...authLimit },
+        responses: { '200': response('Email đã xác minh và tài khoản đã được tạo.', 'Message'), ...invalidInput, ...mutationErrors, ...authLimit, '409': response('Email đã dùng.', 'Error') },
       },
     },
     '/auth/login': {
@@ -145,16 +184,32 @@ export const openapi = {
       Archived: { name: 'archived', in: 'query', description: 'true chỉ lấy cây đã lưu trữ.', schema: { type: 'boolean', default: false } },
     },
     schemas: {
-      CareQuestion: object({ question: { type: 'string', minLength: 2, maxLength: 600, example: 'Lá cà chua bị đốm nâu thì kiểm tra gì?' },
-        speciesCode: { type: 'string', enum: screeningSpecies } }, ['question']),
-      CareAnswer: object({ text: { type: 'string' }, photoSuggested: { type: 'boolean' }, speciesCode: { type: 'string', enum: [...screeningSpecies, null], nullable: true }, source: { ...object({
+      CareQuestion: object({ question: { type: 'string', minLength: 1, maxLength: 600, example: 'Lá cà chua bị đốm nâu thì kiểm tra gì?' },
+        speciesCode: { type: 'string', enum: screeningSpecies }, requestId: uuid, diagnosisId: uuid, contextDiagnosisId: uuid, plantId: uuid }, ['question']),
+      CareHistory: object({ modelEnabled: { type: 'boolean' }, items: { type: 'array', items: object({
+        requestId: uuid, question: { type: 'string' }, diagnosisId: { ...uuid, nullable: true }, plantId: { ...uuid, nullable: true }, reply: schema('CareReply'),
+      }, ['requestId', 'question', 'diagnosisId', 'plantId', 'reply']) } }, ['modelEnabled', 'items']),
+      ChatScreening: object({
+        id: uuid, plantId: { ...uuid, nullable: true }, status: { type: 'string', enum: ['queued', 'processing', 'completed', 'failed'] }, speciesCode,
+        outcome: { type: 'string', nullable: true }, retryable: { type: 'boolean' },
+        findings: { type: 'array', items: object({ code: { type: 'string' }, label: { type: 'string' }, detail: { type: 'string' } }) },
+        guidance: { type: 'object', nullable: true },
+        plan: { type: 'array', items: object({ when: { type: 'string' }, steps: { type: 'array', items: { type: 'string' } } }) },
+      }, ['id', 'plantId', 'status', 'speciesCode', 'outcome', 'retryable', 'findings', 'guidance', 'plan']),
+      EmailVerification: object({ verified: { type: 'boolean' }, enabled: { type: 'boolean' } }, ['verified', 'enabled']),
+      EmailCodeStatus: object({ verified: { type: 'boolean' }, sent: { type: 'boolean' } }, ['verified']),
+      EmailCode: object({ code: { type: 'string', pattern: '^[0-9]{6}$' } }, ['code']),
+      CareAnswer: { type: 'object', properties: { interpretation: { type: 'string' }, origin: { type: 'string', enum: ['model', 'guide', 'journal'] }, requestId: uuid, diagnosisId: { ...uuid, nullable: true }, plantId: { ...uuid, nullable: true }, text: { type: 'string' }, photoSuggested: { type: 'boolean' }, speciesCode: { type: 'string', nullable: true }, source: { type: 'object', nullable: true } } },
+      CareReply: object({ interpretation: { type: 'string' }, origin: { type: 'string', enum: ['model', 'guide', 'journal'] }, text: { type: 'string' }, photoSuggested: { type: 'boolean' }, speciesCode: { type: 'string', enum: [...screeningSpecies, null], nullable: true }, source: { ...object({
         title: { type: 'string' }, url: { type: 'string', format: 'uri' },
       }, ['title', 'url']), nullable: true } }, ['text', 'photoSuggested', 'speciesCode', 'source']),
       Message: object({ message: { type: 'string' } }, ['message']),
       Error: object({ code: { type: 'string' }, message: { type: 'string' }, requestId: uuid }, ['code', 'message', 'requestId']),
-      Register: object({ email, password: { type: 'string', format: 'password', minLength: 12, maxLength: 128 },
+      EmailChallengeRequest: object({ email }, ['email']),
+      EmailChallenge: object({ challengeId: uuid }, ['challengeId']),
+      Register: object({ email, challengeId: uuid, code: { type: 'string', pattern: '^[0-9]{6}$' }, password: { type: 'string', format: 'password', minLength: 12, maxLength: 128 },
         displayName: { type: 'string', minLength: 1, maxLength: 80, description: 'Tên hiển thị tùy chọn, được bỏ khoảng trắng ở đầu và cuối.' },
-        phone: { type: 'string', maxLength: 32, description: 'Số Việt Nam bắt đầu 0 hoặc số quốc tế bắt đầu +.' } }, ['email', 'password']),
+        phone: { type: 'string', maxLength: 32, description: 'Số Việt Nam bắt đầu 0 hoặc số quốc tế bắt đầu +.' } }, ['email', 'password', 'challengeId', 'code']),
       Login: object({ email, password: { type: 'string', format: 'password', minLength: 1, maxLength: 128 } }, ['email', 'password']),
       User: object({ id: uuid, email, role: { type: 'string', enum: ['user', 'admin'] } }, ['id', 'email', 'role']),
       Session: object({ user: schema('User'), csrfToken: { type: 'string' } }, ['user', 'csrfToken']),

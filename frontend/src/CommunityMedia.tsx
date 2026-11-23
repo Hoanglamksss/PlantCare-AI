@@ -31,9 +31,9 @@ export function CommunityPhotos({ photos, onOpen, compact = false }: {
 }
 
 export function CommunityImage({ url, alt, full = false }: { url: string; alt: string; full?: boolean }) {
-  const [failed, setFailed] = useState(false);
-  if (failed) return <span className="community-photo-unavailable">Ảnh hiện không khả dụng</span>;
-  return <img className={full ? 'community-photo-full' : undefined} src={url} alt={alt} loading="lazy" onError={() => setFailed(true)} />;
+  const [failedUrl, setFailedUrl] = useState('');
+  if (failedUrl === url) return <span className="community-photo-unavailable">Ảnh hiện không khả dụng</span>;
+  return <img className={full ? 'community-photo-full' : undefined} src={url} alt={alt} loading="lazy" onError={() => setFailedUrl(url)} />;
 }
 
 export function CommunityMediaPicker({ photos, onPhotos, existing = [], onExisting, disabled, onError }: {

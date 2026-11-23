@@ -5,6 +5,7 @@ import helmet from "helmet";
 import type { Pool } from "pg";
 import type { Config } from "./config.js";
 import { HttpError, errorHandler } from "./errors.js";
+import { createEmailVerificationRouter } from "./modules/auth/email-verification.js";
 import { createAuth } from "./modules/auth/router.js";
 import { createAdminRouter } from "./modules/admin/router.js";
 import { createChatRouter } from "./modules/chat/router.js";
@@ -74,6 +75,8 @@ export function createApp(config: Config, pool: Pool): Express {
          AND to_regclass('care_log_photos') IS NOT NULL AND to_regclass('account_profiles') IS NOT NULL
          AND to_regclass('community_posts') IS NOT NULL AND to_regclass('care_schedules') IS NOT NULL
          AND to_regclass('notifications') IS NOT NULL
+         AND to_regclass('chat_turns') IS NOT NULL AND to_regclass('email_verification_codes') IS NOT NULL
+         AND to_regclass('account_email_challenges') IS NOT NULL
          AND (SELECT count(*) FROM pg_attribute WHERE attrelid = to_regclass('care_logs')
               AND NOT attisdropped AND attname IN ('tai_khoan_id', 'la_ghi_chu')) = 2
          AND EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid = to_regclass('community_plant_posts')
@@ -90,14 +93,15 @@ export function createApp(config: Config, pool: Pool): Express {
   const uploadSlots = new PhotoUploadSlots();
   app.use("/api/v1", auth.requireOrigin, express.json({ limit: "16kb", inflate: false }));
   app.use("/api/v1/auth", auth.router);
-  app.use("/api/v1", createProfileRouter(pool, photoServices, auth.requireSession, auth.requireCsrf, uploadSlots));
+  app.use("/api/v1", createEmailVerificationRouter(pool, config.csrfSecret, auth.requireSession, auth.requireCsrf));
+  app.use("/api/v1", createProfileRouter(pool, photoServices, auth.requireSession, auth.requireCsrf, uploadSlots, config.csrfSecret));
   app.use("/api/v1", createPlantRouter(pool, auth.requireSession, auth.requireCsrf));
   app.use("/api/v1", createCommunityRouter(pool, auth.requireSession, auth.requireCsrf, config.csrfSecret, photoServices, uploadSlots));
   app.use("/api/v1", createAdminRouter(pool, auth.requireSession, auth.requireCsrf));
   app.use("/api/v1", createScheduleRouter(pool, auth.requireSession, auth.requireCsrf));
   app.use("/api/v1", createDiagnosisRouter(pool, auth.requireSession, auth.requireCsrf, photoServices, uploadSlots));
   app.use("/api/v1", createJournalRouter(pool, photoServices, auth.requireSession, auth.requireCsrf, uploadSlots));
-  app.use("/api/v1", createChatRouter(auth.requireSession, auth.requireCsrf));
+  app.use("/api/v1", createChatRouter(pool, auth.requireSession, auth.requireCsrf));
   if (config.enableSwagger) mountSwagger(app);
 
   app.use((_req, _res, next) => next(new HttpError(404, "NOT_FOUND", "Không tìm thấy tài nguyên.")));

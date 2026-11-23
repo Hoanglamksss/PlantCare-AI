@@ -195,3 +195,7 @@ Sơ đồ trên rút gọn để đọc quan hệ. Danh sách đầy đủ cột
 `notifications` lưu chủ/cây/lịch, thời điểm dự kiến, tiêu đề/nội dung và thời điểm tạo/đọc. Unique `(lich_id,hen_luc)` chống một lần nhắc bị tạo hai lần. Worker tạo thông báo và tiến lịch trong cùng giao dịch. Lưu trữ cây hoặc khóa tài khoản làm worker bỏ qua; không xóa lịch sử thông báo chỉ vì tạm dừng/xóa mềm lịch.
 
 Bản này chưa tạo `care_occurrences`, `notification_preferences` hoặc `push_subscriptions`; chưa tự sinh care log khi đánh dấu thông báo đã đọc. Các bảng đó thuộc thiết kế mở rộng trước đây, không phải schema đang triển khai. [API thực tế](../03-kien-truc/api.md)
+
+Migration 0012 thêm chat_turns (theo tài khoản, tham chiếu lượt sàng lọc có thể xóa), email_verification_codes (một mã HMAC đang theo dõi cho mỗi tài khoản) và accounts.email_xac_minh_luc.
+
+Migration 0013 thêm account_email_challenges (OTP theo mục đích, email và tài khoản khi đổi địa chỉ) và chat_turns.plant_id tham chiếu user_plants; backend kiểm tra chủ sở hữu trước khi đọc ngữ cảnh.

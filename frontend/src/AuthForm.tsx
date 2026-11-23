@@ -14,6 +14,9 @@ export function AuthForm({ initialNotice, description, onLogin }: {
 }) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
+  const [challenge, setChallenge] = useState<string | null>(null);
+  const [code, setCode] = useState('');
+  const [editingDetails, setEditingDetails] = useState(false);
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -22,16 +25,36 @@ export function AuthForm({ initialNotice, description, onLogin }: {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const isRegister = mode === 'register';
+  const verifyingEmail = isRegister && Boolean(challenge) && !editingDetails;
   const passwordError = isRegister ? newPasswordError(password) : '';
 
   function changeMode() {
     setMode(isRegister ? 'login' : 'register');
+    setChallenge(null);
+    setCode('');
+    setEditingDetails(false);
     setPassword('');
     setPhone('');
     setDisplayName('');
     setShowPassword(false);
     setError('');
     setNotice('');
+  }
+
+  async function sendCode() {
+    const result = await request<{ challengeId: string }>('/auth/register/send', {
+      method: 'POST', body: { email: email.trim() },
+    });
+    setChallenge(result.challengeId);
+    setEditingDetails(false);
+    setCode('');
+    setNotice('Kiểm tra hộp thư đến hoặc thư rác để lấy mã 6 số. Mã có hiệu lực 10 phút.');
+  }
+
+  async function resend() {
+    setBusy(true);
+    setError('');
+    try { await sendCode(); } catch (failure) { setError(displayError(failure)); } finally { setBusy(false); }
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -45,10 +68,14 @@ export function AuthForm({ initialNotice, description, onLogin }: {
     const credentials = { email: email.trim(), password };
     try {
       if (isRegister) {
+        if (!challenge) { await sendCode(); return; }
+        if (editingDetails) { setEditingDetails(false); return; }
         const result = await request<{ message: string }>('/auth/register', {
-          method: 'POST', body: { ...credentials, ...(phone.trim() && { phone: phone.trim() }), ...(displayName.trim() && { displayName: displayName.trim() }) },
+          method: 'POST', body: { ...credentials, challengeId: challenge, code, ...(phone.trim() && { phone: phone.trim() }), ...(displayName.trim() && { displayName: displayName.trim() }) },
         });
         setMode('login');
+        setChallenge(null);
+        setCode('');
         setPassword('');
         setPhone('');
         setDisplayName('');
@@ -72,12 +99,18 @@ export function AuthForm({ initialNotice, description, onLogin }: {
     <div className="auth-form-body">
       {isRegister && <button className="auth-back" type="button" onClick={changeMode} disabled={busy}><ArrowLeft size={21} aria-hidden="true" /> Tạo tài khoản</button>}
       {isRegister && <span className="auth-leaf" aria-hidden="true"><Leaf size={29} strokeWidth={1.5} /></span>}
-      <h1>{isRegister ? <>Một khu vườn nhỏ.<br />Khởi đầu từ bạn.</> : <>Chăm cây xanh,<br />nuôi an lành.</>}</h1>
-      <p className="auth-description">{isRegister ? 'Tạo tài khoản để lưu cây và ghi lại hành trình chăm sóc khu vườn của bạn.' : description ?? 'Đăng nhập để cùng cây lớn lên mỗi ngày.'}</p>
+      <h1>{verifyingEmail ? 'Xác minh email' : isRegister ? <>Một khu vườn nhỏ.<br />Khởi đầu từ bạn.</> : <>Chăm cây xanh,<br />nuôi an lành.</>}</h1>
+      {isRegister && <ol className="auth-register-steps" aria-label="Các bước đăng ký">
+        <li aria-current={!verifyingEmail ? 'step' : undefined}>1. Thông tin tài khoản</li>
+        <li aria-current={verifyingEmail ? 'step' : undefined}>2. Xác minh email</li>
+      </ol>}
+      <p className="auth-description">{verifyingEmail ? <>Nhập mã 6 số đã gửi đến <strong>{email.trim()}</strong> để tạo tài khoản.</>
+        : isRegister ? 'Xác minh email bằng mã OTP để hoàn tất đăng ký.' : description ?? 'Đăng nhập để cùng cây lớn lên mỗi ngày.'}</p>
       {notice && <p className="notice" role="status">{notice}</p>}
       <ErrorNotice message={error} />
       <form onSubmit={(event) => void submit(event)}>
         <fieldset disabled={busy} className="form-stack">
+          {!verifyingEmail && <>
           {isRegister && <label className="field">Tên của bạn
             <span className="auth-input-wrap"><UserRound size={19} aria-hidden="true" />
               <input name="displayName" autoComplete="nickname" placeholder="Bạn muốn được gọi là gì?" required maxLength={80} value={displayName} onChange={(event) => setDisplayName(event.target.value)} />
@@ -85,7 +118,7 @@ export function AuthForm({ initialNotice, description, onLogin }: {
           </label>}
           <label className="field">Email
             <span className="auth-input-wrap"><Mail size={19} aria-hidden="true" />
-              <input type="email" name="email" autoComplete="username" placeholder="ban@email.com" required maxLength={254} value={email} onChange={(event) => setEmail(event.target.value)} />
+              <input type="email" name="email" autoComplete="username" placeholder="ban@email.com" required maxLength={254} value={email} onChange={(event) => { setEmail(event.target.value); setChallenge(null); setCode(''); setNotice(''); }} />
             </span>
           </label>
           {isRegister && <label className="field">Số điện thoại <span className="field-hint">Tùy chọn</span>
@@ -108,7 +141,18 @@ export function AuthForm({ initialNotice, description, onLogin }: {
               {!password ? 'Dùng ít nhất 12 ký tự để bảo vệ khu vườn của bạn.' : passwordError || 'Độ dài mật khẩu hợp lệ.'}
             </span>}
           </label>
-          <button type="submit" className="button button-primary auth-submit">{busy ? 'Đang xử lý…' : isRegister ? 'Tạo tài khoản' : 'Đăng nhập'}</button>
+          </>}
+          {verifyingEmail && <>
+            <label className="field">Mã xác minh email
+              <input name="code" autoFocus maxLength={6} inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" required
+                value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} />
+            </label>
+            <div className="auth-otp-actions">
+              <button type="button" className="text-button" onClick={() => { setEditingDetails(true); setError(''); setNotice(''); }}>Sửa thông tin</button>
+              <button type="button" className="text-button" onClick={() => void resend()}>Gửi lại mã</button>
+            </div>
+          </>}
+          <button type="submit" className="button button-primary auth-submit">{busy ? 'Đang xử lý…' : isRegister ? verifyingEmail ? 'Xác minh và tạo tài khoản' : challenge ? 'Tiếp tục xác minh' : 'Gửi mã xác minh' : 'Đăng nhập'}</button>
         </fieldset>
       </form>
       <div className="auth-toggle">

@@ -1,3 +1,4 @@
+import { requireVerifiedEmailForCommunity } from '../auth/email-verification.js';
 import { createHmac } from 'node:crypto';
 import { Router, type RequestHandler, type Response } from 'express';
 import type { Pool } from 'pg';
@@ -157,6 +158,7 @@ export function createCommunityRouter(
     const plantId = validate(uuid, req.params.plantId);
     const userId = req.auth!.user.id;
     const input = validate(shareBody, req.body);
+    if (input.shared) await requireVerifiedEmailForCommunity(pool, userId);
     const target = `SELECT id FROM user_plants WHERE id = $1 AND tai_khoan_id = $2 FOR UPDATE`;
     if (!input.shared) {
       const { rows } = await pool.query<Share>(`
@@ -212,6 +214,7 @@ export function createCommunityRouter(
   });
 
   router.post('/community/plants/:plantId/comments', requireSession, requireCsrf, async (req, res) => {
+    await requireVerifiedEmailForCommunity(pool, req.auth!.user.id);
     const userId = req.auth!.user.id;
     checkRate(commentLimit, userId, res);
     const plantId = validate(uuid, req.params.plantId);

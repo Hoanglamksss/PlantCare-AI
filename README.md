@@ -1,5 +1,7 @@
 # PlantCare AI
 
+[Mở PlantCare AI](https://www.plantcare.io.vn/) · [Pipeline chatbot và ảnh lá](docs/03-kien-truc/pipeline-chat-va-anh.md) · [Cấu hình tên miền](deploy/plantcare-io-vn.md)
+
 [Kho mã nguồn GitHub](https://github.com/Hoanglamksss/PlantCare-AI) · Nhánh chính `main`.
 
 Ứng dụng web theo dõi cà chua, dưa leo, ớt, húng quế và bạc hà, xem dấu hiệu trên lá, trao đổi trong vườn cộng đồng và hỏi cách chăm cây tại nhà.

@@ -45,6 +45,9 @@ services:
       ENABLE_SWAGGER: 'true'
       DB_POOL_MAX: '10'
       INFERENCE_URL: http://inference:8000
+      CHAT_MODEL_URL: ${CHAT_MODEL_URL:-}
+      CHAT_MODEL: ${CHAT_MODEL:-}
+      CHAT_API_KEY: ${CHAT_API_KEY:-}
       S3_ENDPOINT: http://minio:9000
       S3_BUCKET: plantcare-images
       S3_ACCESS_KEY: plantcare-local

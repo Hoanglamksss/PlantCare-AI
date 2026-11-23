@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Leaf } from 'lucide-react';
 import { displayError, request, type Plant } from './api';
+import { fitUploadPhotos } from './photo';
 import { usePage } from './collections';
 import { Dialog, ErrorNotice } from './ui';
 import { CommunityMediaPicker } from './CommunityMedia';
@@ -39,10 +40,13 @@ export function CommunityPostEditor({ post, initialPlant, csrfToken, onExpired, 
     body.set('happenedAt', date.toISOString());
     body.set('includeHistory', String(includeHistory));
     if (post) body.set('retainedPhotoIds', JSON.stringify(existing.map((photo) => photo.id)));
-    for (const photo of photos) body.append('images', photo);
     setBusy(true);
     setError('');
     try {
+      let uploads: File[];
+      try { uploads = await fitUploadPhotos(photos); }
+      catch (failure) { setError(failure instanceof Error ? failure.message : 'Không xử lý được ảnh.'); return; }
+      for (const photo of uploads) body.append('images', photo);
       const path = post ? `/community/posts/${encodeURIComponent(post.id)}` : '/community/posts';
       const saved = await request<CommunityPost>(path, { method: post ? 'PATCH' : 'POST', csrfToken, body });
       onSaved(saved);

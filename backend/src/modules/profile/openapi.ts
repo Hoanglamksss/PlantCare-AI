@@ -35,12 +35,21 @@ export const profilePaths = {
       responses: { '200': profileResult, '400': invalid, '401': unauthorized, '403': forbidden },
     },
   },
+  '/profile/credentials/email/send': {
+    post: {
+      operationId: 'sendEmailChangeCode', tags: ['Tài khoản'], summary: 'Gửi mã đến email mới',
+      security: session, parameters: [csrf],
+      requestBody: body({ email, currentPassword: { ...password, minLength: 1 } }, ['email', 'currentPassword']),
+      responses: { '200': { description: 'Mã yêu cầu xác minh.', content: json({ $ref: '#/components/schemas/EmailChallenge' }) },
+        '400': invalid, '401': unauthorized, '403': forbidden, '409': error('Email đã dùng.'), '429': error('Vượt giới hạn gửi.'), '503': error('Dịch vụ gửi email chưa sẵn sàng.') },
+    },
+  },
   '/profile/credentials': {
     patch: {
       operationId: 'changeCredentials', tags: ['Tài khoản'], summary: 'Đổi email hoặc mật khẩu',
       description: 'Nhập mật khẩu hiện tại và ít nhất một thay đổi. Khi thành công, tất cả phiên đăng nhập của tài khoản bị thu hồi.',
       security: session, parameters: [csrf],
-      requestBody: body({ currentPassword: { ...password, minLength: 1 }, email, newPassword: { ...password, minLength: 12 } }, ['currentPassword']),
+      requestBody: body({ currentPassword: { ...password, minLength: 1 }, email, newPassword: { ...password, minLength: 12 }, challengeId: { type: 'string', format: 'uuid' }, code: { type: 'string', pattern: '^[0-9]{6}$' } }, ['currentPassword']),
       responses: {
         '204': { description: 'Đã đổi thông tin đăng nhập. Cần đăng nhập lại.' }, '400': invalid, '401': unauthorized,
         '403': error('Origin, mã CSRF hoặc mật khẩu hiện tại không hợp lệ.'),

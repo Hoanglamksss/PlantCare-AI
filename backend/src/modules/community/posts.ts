@@ -1,3 +1,4 @@
+import { requireVerifiedEmailForCommunity } from '../auth/email-verification.js';
 import type { Router } from 'express';
 import { z } from 'zod';
 import { HttpError } from '../../errors.js';
@@ -35,6 +36,7 @@ export function mountPosts(router: Router, context: SocialContext) {
   });
 
   router.post('/community/posts', requireSession, requireCsrf, writeRate, async (req, res) => {
+    await requireVerifiedEmailForCommunity(pool, req.auth!.user.id);
     const received = await readSocialInput(req, res, context);
     try {
       const input = parse(newPost, received.fields);

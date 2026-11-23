@@ -1,3 +1,4 @@
+import { requireVerifiedEmailForCommunity } from '../auth/email-verification.js';
 import type { Router } from 'express';
 import type { Pool, PoolClient } from 'pg';
 import { z } from 'zod';
@@ -67,6 +68,7 @@ export function mountComments(router: Router, context: SocialContext) {
   });
 
   router.post('/community/posts/:postId/comments', requireSession, requireCsrf, writeRate, async (req, res) => {
+    await requireVerifiedEmailForCommunity(pool, req.auth!.user.id);
     const postId = parse(uuid, req.params.postId);
     const viewer = req.auth!.user.id;
     await readPost(pool, postId, viewer);

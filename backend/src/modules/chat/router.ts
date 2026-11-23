@@ -1,19 +1,28 @@
+import { createHash, randomUUID } from 'node:crypto';
+import type { Pool } from 'pg';
 import { Router, type RequestHandler } from 'express';
 import { z } from 'zod';
 import { HttpError } from '../../errors.js';
 import { careSources, screeningSpecies, type ScreeningSpecies } from '../diagnosis/guidance.js';
 
-type Source = { title: string; url: string };
-const input = z.strictObject({ question: z.string().trim().min(2).max(600), speciesCode: z.enum(screeningSpecies).optional() });
-const normalize = (value: string) => value.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').replace(/đ/g, 'd').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
-const reply = (text: string, source: Source | null = null, photoSuggested = false) => ({ text, source, photoSuggested });
-const cropNames: Record<ScreeningSpecies, RegExp> = {
-  tomato: /\b(ca chua|tomato)\b/,
-  cucumber: /\b(dua leo|dua chuot|cucumber)\b/,
-  chili: /\b(ot|chili)\b/,
-  basil: /\b(hung que|hung tay|basil)\b/,
-  mint: /\b(bac ha|mint)\b/,
-};
+import { AttemptWindow } from '../auth/throttle.js';
+import { configuredChatModel } from './model.js';
+import { readChatPlant } from './plant-context.js';
+import { loadChatScreening } from './screening.js';
+import { interpretedQuestion, understandQuestion } from './language.js';
+import { findGuides, latestWatering, siteAnswer, type CareSource } from './knowledge.js';
+
+type Source = CareSource;
+type Reply = { text: string; source: Source | null; photoSuggested: boolean; interpretation?: string; origin?: 'model' | 'guide' | 'journal' };
+const input = z.strictObject({
+  question: z.string().trim().min(1).max(600).refine(value => !value.includes('\0')),
+  speciesCode: z.enum(screeningSpecies).optional(),
+  plantId: z.uuid().transform(id => id.toLowerCase()).optional(),
+  diagnosisId: z.uuid().optional(),
+  contextDiagnosisId: z.uuid().optional(),
+  requestId: z.uuid().optional(),
+}).refine(value => !(value.diagnosisId && value.contextDiagnosisId));
+const reply = (text: string, source: Source | null = null, photoSuggested = false): Reply => ({ text, source, photoSuggested });
 
 const leafReplies: Record<ScreeningSpecies, [string, Source]> = {
   tomato: [
@@ -65,7 +74,7 @@ function answer(words: string, crop?: ScreeningSpecies) {
       careSources.gardenDiseases, true,
     );
   }
-  if (/\b(thoi re|ung re|thoi goc|thoi than|dat uot|dat sung|ung nuoc|tuoi qua nhieu)\b/.test(words)) return reply(
+  if (/\b(thoi re|ung re|thoi goc|thoi than|dat uot|dat van uot|dat con uot|dat sung|ung nuoc|tuoi qua nhieu)\b/.test(words)) return reply(
     'Nếu cây héo khi đất còn ướt, đổ nước đọng ở khay và kiểm tra lỗ thoát trước khi tưới lại. Nếu cây trồng chậu tiếp tục héo, kiểm tra nhẹ phần rễ ở mép bầu. Rễ mềm, sẫm màu có thể bị thối. Khi chỉ một phần nhỏ bị ảnh hưởng và còn rễ chắc, có thể bỏ phần rễ hỏng rồi trồng lại trong chậu sạch và giá thể thoát nước. Để chậu riêng nếu gốc tiếp tục mềm hoặc đen lan.',
     careSources.roots, true,
   );
@@ -115,14 +124,155 @@ function answer(words: string, crop?: ScreeningSpecies) {
   return reply('Bạn có thể hỏi về cà chua, dưa leo, ớt, húng quế hoặc bạc hà. Cho mình biết dấu hiệu nằm trên lá, thân, quả hay rễ, bắt đầu khi nào và đất đang ẩm hay khô.');
 }
 
-export function createChatRouter(requireSession: RequestHandler, requireCsrf: RequestHandler) {
+type Answer = ReturnType<typeof reply> & { speciesCode: ScreeningSpecies | null };
+type Turn = { requestId: string; question: string; reply: Answer; diagnosisId: string | null; plantId: string | null };
+const turnFields = 'request_id AS "requestId", question, answer AS reply, diagnosis_id AS "diagnosisId", plant_id AS "plantId"';
+const siteGuide = 'PlantCare có các mục Vườn cây, Đặt lịch, Chẩn đoán, Trợ lý AI, Cộng đồng và Hồ sơ. Đính kèm ảnh ở Trợ lý AI để sàng lọc và hỏi tiếp; xem các lần sàng lọc trong mục Chẩn đoán. Xác minh email trong Hồ sơ.';
+
+export function createChatRouter(pool: Pool, requireSession: RequestHandler, requireCsrf: RequestHandler) {
   const router = Router();
-  router.post('/chat', requireSession, requireCsrf, (req, res) => {
+  const model = configuredChatModel();
+  const attempts = new AttemptWindow(30);
+  const active = new Set<string>();
+  const scope = [requireSession, requireCsrf];
+
+  async function recent(owner: string, limit: number) {
+    const { rows } = await pool.query<Turn>(`
+      SELECT ${turnFields} FROM chat_turns
+      WHERE tai_khoan_id = $1 ORDER BY sequence DESC LIMIT $2
+    `, [owner, limit]);
+    return rows.reverse();
+  }
+
+  router.get('/chat', requireSession, async (req, res) => {
+    res.json({ items: await recent(req.auth!.user.id, 30), modelEnabled: Boolean(model) });
+  });
+
+  router.get('/chat/screening/:id', requireSession, async (req, res) => {
+    const id = z.uuid().safeParse(req.params.id);
+    if (!id.success) throw new HttpError(400, 'INVALID_INPUT', 'Mã lần sàng lọc không hợp lệ.');
+    const result = await loadChatScreening(pool, req.auth!.user.id, id.data);
+    if (!result) throw new HttpError(404, 'DIAGNOSIS_NOT_FOUND', 'Không tìm thấy lần sàng lọc.');
+    res.json(result);
+  });
+
+  router.post('/chat', ...scope, async (req, res) => {
     const parsed = input.safeParse(req.body);
-    if (!parsed.success) throw new HttpError(400, 'INVALID_QUESTION', 'Nhập câu hỏi từ 2 đến 600 ký tự và chọn loại cây được hỗ trợ.');
-    const words = normalize(parsed.data.question);
-    const crop = screeningSpecies.find((candidate) => cropNames[candidate].test(words)) ?? parsed.data.speciesCode;
-    res.json({ ...answer(words, crop), speciesCode: crop ?? null });
+    if (!parsed.success) throw new HttpError(400, 'INVALID_QUESTION', 'Nhập câu hỏi tối đa 600 ký tự và chọn loại cây được hỗ trợ.');
+    const { question, diagnosisId, contextDiagnosisId, speciesCode, plantId, requestId = randomUUID() } = parsed.data;
+    const owner = req.auth!.user.id;
+    const digest = createHash('sha256').update(JSON.stringify([question, speciesCode, diagnosisId, contextDiagnosisId, ...(plantId ? [plantId] : [])])).digest('hex');
+    const { rows: [saved] } = await pool.query<Turn & { digest: string }>(`
+      SELECT ${turnFields}, request_digest AS digest FROM chat_turns WHERE tai_khoan_id = $1 AND request_id = $2
+    `, [owner, requestId]);
+    if (saved) {
+      if (saved.digest !== digest) throw new HttpError(409, 'CHAT_REQUEST_CONFLICT', 'Mã yêu cầu đã dùng cho tin nhắn khác.');
+      res.json({ ...saved.reply, requestId: saved.requestId, diagnosisId: saved.diagnosisId, plantId: saved.plantId });
+      return;
+    }
+
+    if (active.has(owner) || active.size >= 12 || attempts.retryAfter(owner)) {
+      throw new HttpError(429, 'CHAT_BUSY', 'Trợ lý đang xử lý nhiều yêu cầu. Vui lòng thử lại sau.');
+    }
+    active.add(owner);
+    try {
+      const history = (await recent(owner, 6)).filter(turn => (turn.plantId ?? null) === (plantId ?? null));
+      const { words, corrected, crop: typedCrop, multipleCrops, followUp, aboutImage, outside } = understandQuestion(question);
+      const previous = history.at(-1);
+      const greeting = /^(alo|chao|chao ban|xin chao|hello|hi|cam on|cam on ban)( (a|nha|nhe|ban oi))?$/.test(words);
+      const plant = plantId ? await readChatPlant(pool, owner, plantId) : null;
+      const chosenCrop = plant?.speciesCode ?? typedCrop ?? speciesCode;
+      let contextId = diagnosisId ?? contextDiagnosisId;
+      if (!contextId && aboutImage && !outside) {
+        const { rows: [photoTurn] } = await pool.query<{ diagnosisId: string }>(`
+          SELECT diagnosis_id AS "diagnosisId" FROM chat_turns
+          WHERE tai_khoan_id = $1 AND diagnosis_id IS NOT NULL AND ($2::uuid IS NULL OR plant_id = $2)
+          ORDER BY sequence DESC LIMIT 1
+        `, [owner, plantId ?? null]);
+        contextId = photoTurn?.diagnosisId;
+      }
+      const photo = contextId ? await loadChatScreening(pool, owner, contextId) : null;
+      if ((diagnosisId || contextDiagnosisId) && !photo) throw new HttpError(404, 'DIAGNOSIS_NOT_FOUND', 'Không tìm thấy lần sàng lọc.');
+      if (photo && plant && photo.plantId !== plant.id) {
+        throw new HttpError(409, 'CHAT_PLANT_PHOTO_MISMATCH', 'Ảnh này không gắn với cây đang chọn. Hãy bỏ chọn ảnh hoặc chọn lại cây.');
+      }
+      const screening = photo && (diagnosisId || contextDiagnosisId || !chosenCrop || photo.speciesCode === chosenCrop) ? photo : null;
+      const imageCrop = screeningSpecies.find(candidate => candidate === screening?.speciesCode);
+      const crop = multipleCrops && !plant && !diagnosisId && !contextDiagnosisId ? undefined
+        : plant?.speciesCode ?? imageCrop ?? chosenCrop ?? (followUp ? previous?.reply.speciesCode ?? undefined : undefined);
+
+      let result: Reply;
+      const navigation = siteAnswer(words);
+      const watering = /\b(lan cuoi|lan gan nhat|lan nao|khi nao|luc nao|may gio|bao gio)\b/.test(words) && /\btuoi\b/.test(words);
+      const futureWatering = /\b(nen|can|se|sap|lich)\b/.test(words);
+      const wateringFollowUp = previous?.reply.origin === 'journal' && previous.reply.text.startsWith('Bạn muốn hỏi cây nào?') && !greeting && !navigation
+        && !outside && words.length <= 80 && !/\b(benh|la|dom|vang|heo|anh|lam|lich|bao gio)\b/.test(words);
+
+      if (diagnosisId) {
+        result = reply('Mình đã nhận ảnh. Xem kết quả bên dưới, hoặc hỏi tiếp về dấu hiệu và việc cần làm.');
+      } else if (greeting) {
+        result = reply(words.startsWith('cam on') ? 'Không có gì! Bạn có muốn hỏi thêm về cây đang chăm không?' : 'Chào bạn! Bạn muốn hỏi về chăm cây, một ảnh lá hay cách dùng PlantCare?');
+      } else if (outside) {
+        result = reply('Mình hỗ trợ chăm cây và cách dùng PlantCare. Bạn muốn hỏi gì về cây đang trồng?');
+      } else if (navigation) {
+        result = reply(navigation);
+      } else if ((watering && !futureWatering) || wateringFollowUp) {
+        result = { ...reply(await latestWatering(pool, owner, crop, words, plantId)), origin: 'journal' };
+      } else if (screening && (aboutImage || contextDiagnosisId) && screening.status !== 'completed') {
+        result = reply(screening.status === 'failed'
+          ? 'Lượt kiểm tra ảnh chưa thành công. Bạn có thể thử lại từ thẻ ảnh hoặc gửi ảnh khác.'
+          : 'Ảnh đang được phân tích. Mình sẽ hiển thị kết quả trong thẻ ảnh khi có.');
+      } else {
+        const previousWords = followUp && previous && !previous.diagnosisId && previous.reply.origin !== 'journal' ? understandQuestion(previous.question).words : '';
+        const search = [words, previousWords].filter(Boolean).join(' ');
+        const matched = answer(words, crop);
+        const localGuide = matched.source || !previousWords ? matched : answer(search, crop);
+        let imageReply: Reply | undefined;
+        if (screening?.status === 'completed' && screening.guidance && (aboutImage || contextDiagnosisId)) {
+          const planIndex = /\b(48|72|sau hai ngay|sau ba ngay|ngay mot)\b/.test(words) ? 2
+            : /\b(mai)\b/.test(words) ? 1 : /\b(hom nay|bay gio)\b/.test(words) ? 0 : -1;
+          const plan = screening.plan[planIndex];
+          const overview = [screening.guidance.recommendation, ...screening.findings.map(finding => finding.label)].join(' ');
+          imageReply = reply(plan ? `${plan.when}: ${plan.steps.join(' ')}` : overview);
+        }
+        const fallback = imageReply ?? localGuide;
+        result = { ...fallback, origin: 'guide' };
+        if (model && !(imageReply && /\b(mai|hom nay|48|72|ngay mot)\b/.test(words))) {
+          const guides = await findGuides(pool, crop, search);
+          const sources = [
+            ...(localGuide.source ? [{ ...localGuide.source, text: localGuide.text }] : []),
+            ...guides,
+          ];
+          try {
+            const generated = await model(history.filter(turn => turn.reply.origin !== 'journal').map(turn => ({
+              question: turn.question,
+              answer: turn.diagnosisId ? 'Đã nhận ảnh.' : turn.reply.text,
+            })), {
+              speciesCode: crop, attachedPlant: plant ? { speciesCode: plant.speciesCode, plantedOn: plant.plantedOn, activities: plant.activities } : null, normalizedQuestion: words, screening, siteGuide,
+              sources: sources.map(({ title, text }, id) => ({ id, title, text })),
+            }, question);
+            const source = generated.sourceId === null ? undefined : sources[generated.sourceId];
+            result = { ...reply(generated.text, source ? { title: source.title, url: source.url } : null, generated.photoSuggested),
+              origin: 'model', ...(generated.interpretation ? { interpretation: generated.interpretation } : {}) };
+          } catch (failure) {
+            if (!imageReply && !localGuide.source) throw failure;
+          }
+        }
+        if (corrected && !result.interpretation) result.interpretation = interpretedQuestion(words);
+      }
+
+      const chatAnswer: Answer = { ...result, speciesCode: crop ?? null };
+      const { rows: [turn] } = await pool.query<Turn>(`
+        INSERT INTO chat_turns (tai_khoan_id, request_id, question, answer, diagnosis_id, request_digest, plant_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT (tai_khoan_id, request_id) DO NOTHING
+        RETURNING ${turnFields}
+      `, [owner, requestId, question, chatAnswer, diagnosisId ?? null, digest, plantId ?? null]);
+      if (!turn) throw new HttpError(409, 'CHAT_REQUEST_CONFLICT', 'Tin nhắn đã được xử lý. Hãy tải lại cuộc trò chuyện.');
+      res.json({ ...turn.reply, requestId: turn.requestId, diagnosisId: turn.diagnosisId, plantId: turn.plantId });
+    } finally {
+      active.delete(owner);
+    }
   });
   return router;
 }

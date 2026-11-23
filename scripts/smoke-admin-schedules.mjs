@@ -1,3 +1,4 @@
+import { fixtureEmailProof } from './otp-fixture.mjs';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -56,7 +57,7 @@ async function login(account) {
 
 async function createAccount(label) {
   const credentials = { email: `${marker}-${label}@example.test`, password: randomBytes(24).toString('base64url') };
-  await request('/auth/register', 200, { method: 'POST', body: { ...credentials, displayName: `Người thử ${label}` } });
+  await request('/auth/register', 200, { method: 'POST', body: { ...credentials, ...fixtureEmailProof(credentials.email), displayName: `Người thử ${label}` } });
   const account = { credentials, session: null };
   account.session = await login(account);
   account.id = account.session.user.id;

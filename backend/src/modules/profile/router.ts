@@ -4,6 +4,7 @@ import type { Pool, PoolClient } from 'pg';
 import { z } from 'zod';
 import { HttpError } from '../../errors.js';
 import { accountEmail, currentPassword, newPassword, passwordOptions, passwordValidationError, rejectCredentialRate, withPasswordWork } from '../auth/credentials.js';
+import { accountEmailChallenges, emailProof, invalidEmailProof } from '../auth/account-email-challenge.js';
 import { AttemptWindow } from '../auth/throttle.js';
 import { reservePhoto, type PhotoReservation } from '../media/photos.js';
 import { MissingPhoto, type PhotoServices } from '../media/services.js';
@@ -18,6 +19,8 @@ const credentialsUpdate = z.strictObject({
   currentPassword,
   email: accountEmail.optional(),
   newPassword: newPassword.optional(),
+  challengeId: emailProof.challengeId.optional(),
+  code: emailProof.code.optional(),
 }).refine((value) => value.email !== undefined || value.newPassword !== undefined);
 const avatarQuery = z.strictObject({ version: z.uuid().optional() });
 const readAvatar = photoUpload(32);
@@ -72,6 +75,7 @@ async function transaction<T>(pool: Pool, action: (client: PoolClient) => Promis
 
 async function changeCredentials(
   pool: Pool, owner: string, tokenHash: string, input: z.infer<typeof credentialsUpdate>,
+  challenges: ReturnType<typeof accountEmailChallenges>,
 ) {
   const { rows: [before] } = await pool.query<AccountCredentials>(`
     SELECT email, mat_khau_bam AS "passwordHash" FROM accounts WHERE id = $1 AND yeu_cau_xoa_luc IS NULL
@@ -83,10 +87,13 @@ async function changeCredentials(
   if (input.email === before.email && input.newPassword === undefined) {
     throw new HttpError(400, 'CREDENTIALS_UNCHANGED', 'Nhập email mới hoặc mật khẩu mới.');
   }
+  const changedEmail = input.email && input.email !== before.email ? input.email : null;
+  const { challengeId, code } = input;
+  if (changedEmail && (!challengeId || !code)) throw invalidEmailProof();
   const newHash = input.newPassword !== undefined ? await hash(input.newPassword, passwordOptions) : before.passwordHash;
 
   try {
-    await transaction(pool, async (client) => {
+    const saved = await transaction(pool, async (client) => {
       // Recheck the verified credentials under the same account lock used during login.
       const { rowCount: matches } = await client.query(`
         SELECT 1 FROM accounts
@@ -103,10 +110,18 @@ async function changeCredentials(
       `, [owner, tokenHash]);
       if (!activeSession) throw unauthorized();
 
-      await client.query('UPDATE accounts SET email = $2, mat_khau_bam = $3 WHERE id = $1',
+      if (changedEmail && !await challenges.consume(client, { purpose: 'change', subject: owner, email: changedEmail }, { challengeId: challengeId!, code: code! })) {
+        return false;
+      }
+      await client.query('UPDATE accounts SET email = $2, mat_khau_bam = $3, email_xac_minh_luc = CASE WHEN email = $2 THEN email_xac_minh_luc ELSE clock_timestamp() END WHERE id = $1',
         [owner, input.email ?? before.email, newHash]);
+      if (input.email && input.email !== before.email) {
+        await client.query('DELETE FROM email_verification_codes WHERE tai_khoan_id = $1', [owner]);
+      }
       await client.query('UPDATE sessions SET thu_hoi_luc = clock_timestamp() WHERE tai_khoan_id = $1 AND thu_hoi_luc IS NULL', [owner]);
+      return true;
     });
+    if (!saved) throw invalidEmailProof();
   } catch (error) {
     if (error && typeof error === 'object' && 'code' in error && error.code === '23505'
       && 'constraint' in error && error.constraint === 'accounts_email_key') {
@@ -156,8 +171,10 @@ async function replaceAvatar(pool: Pool, owner: string, replacement: PhotoReserv
 export function createProfileRouter(
   pool: Pool, services: PhotoServices | undefined, requireSession: RequestHandler, requireCsrf: RequestHandler,
   uploadSlots: PhotoUploadSlots,
+  csrfSecret: string,
 ) {
   const router = Router();
+  const challenges = accountEmailChallenges(pool, csrfSecret);
   const credentialAttempts = new AttemptWindow(8);
   const avatarAttempts = new AttemptWindow(15);
 
@@ -192,12 +209,31 @@ export function createProfileRouter(
     res.json(profileResponse(profile));
   });
 
+  router.post('/profile/credentials/email/send', requireSession, requireCsrf, async (req, res) => {
+    const { email, currentPassword: password } = parse(z.strictObject({ email: accountEmail, currentPassword }), req.body);
+    const user = req.auth!.user;
+    if (email === user.email) throw new HttpError(400, 'CREDENTIALS_UNCHANGED', 'Hãy nhập địa chỉ email mới.');
+    const cooldown = credentialAttempts.retryAfter(user.id);
+    if (cooldown > 0) rejectCredentialRate(res, cooldown);
+    await withPasswordWork(res, async () => {
+      const { rows: [account] } = await pool.query<{ passwordHash: string }>(
+        'SELECT mat_khau_bam AS "passwordHash" FROM accounts WHERE id = $1 AND email = $2 AND yeu_cau_xoa_luc IS NULL',
+        [user.id, user.email],
+      );
+      if (!account || !await verify(account.passwordHash, password)) {
+        throw new HttpError(403, 'INVALID_CURRENT_PASSWORD', 'Mật khẩu hiện tại không đúng.');
+      }
+      const challengeId = await challenges.send({ purpose: 'change', subject: user.id, email }, req.ip ?? 'unknown');
+      res.json({ challengeId });
+    });
+  });
+
   router.patch('/profile/credentials', requireSession, requireCsrf, async (req, res) => {
     const input = parse(credentialsUpdate, req.body);
     const { user, tokenHash } = req.auth!;
     const cooldown = credentialAttempts.retryAfter(user.id);
     if (cooldown > 0) rejectCredentialRate(res, cooldown);
-    await withPasswordWork(res, () => changeCredentials(pool, user.id, tokenHash, input));
+    await withPasswordWork(res, () => changeCredentials(pool, user.id, tokenHash, input, challenges));
     res.status(204).end();
   });
 

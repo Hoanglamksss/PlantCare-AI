@@ -27,3 +27,13 @@
 Khi duyệt hoặc sửa, ghi người duyệt, ngày, lý do thay đổi và liên kết bằng chứng ngay ở mục tương ứng.
 
 Lịch sử trạng thái các phiên cũ được giữ ở [lịch sử phiên](lich-su-phien.md). Kết quả xác minh hiện tại ở [snapshot bàn giao](trang-thai.md); nguồn schema là migration thực thi. [Sơ đồ và phạm vi snapshot](../07-so-do/README.md)
+
+- 22/11: bắt đầu triển khai chat có ảnh bằng cách dùng lại hàng đợi sàng lọc hiện có. Giữ bảng xếp hạng bệnh ở giai đoạn đánh giá dữ liệu. Xác minh qua OTP email để dùng hạn mức miễn phí; xác minh số điện thoại chưa bật. [Cấu hình và nghiệm thu](../03-kien-truc/nang-cap-chat-otp.md)
+
+- 23/11: thêm Gmail API cho OTP email khi chưa có tên miền gửi. Giữ Resend làm cấu hình thay thế. API, schema và chính sách xác minh email giữ nguyên.
+
+- 23/11: dùng hai origin HTTPS cố định trong đợt chuyển tên miền. Giữ cookie theo host và kiểm tra CSRF. Không chuyển link chính trước khi xác nhận DNS, HTTPS và đăng nhập. [Runbook](../../deploy/plantcare-io-vn.md).
+
+- 23/11: dùng phân luồng theo dữ liệu cho ảnh, hướng dẫn web và lịch sử tưới. Mô hình nhận hướng dẫn đã xuất bản theo độ liên quan và trả lời bằng JSON. Giữ một hội thoại mỗi tài khoản và cải tiến giao diện chat.
+
+- 23/11: chỉ tạo tài khoản sau OTP, chỉ đổi email sau OTP gửi tới email mới. Giữ tài khoản cũ hoạt động. Chat chỉ đọc hồ sơ cây được đính kèm và thuộc người đăng nhập. Địa chỉ chính là www.plantcare.io.vn.

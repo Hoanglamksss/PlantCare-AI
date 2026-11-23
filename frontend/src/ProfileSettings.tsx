@@ -4,6 +4,7 @@ import { Camera, ChevronRight, ImagePlus, LockKeyhole, LogOut, UserRound } from 
 import { displayError, request, type AccountProfile, type Session } from './api';
 import { acceptedPhotoTypes, readPhoto, usePhotoPreview, validatePhoto } from './photo';
 import { Dialog, ErrorNotice } from './ui';
+import { EmailVerification } from './EmailVerification';
 import { newPasswordError } from './password';
 import './profile.css';
 
@@ -121,6 +122,7 @@ export function ProfileSettings({ session, profile, loadError, logoutError, logg
         </div>
       </section>
     </>}
+    {profile && <EmailVerification session={session} onExpired={onExpired} />}
     <div className="profile-logout">
       <ErrorNotice message={logoutError} />
       <button type="button" className="button profile-logout-button" onClick={onLogout} disabled={loggingOut || !!action}><LogOut size={18} aria-hidden="true" />{loggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}</button>
@@ -170,6 +172,26 @@ function CredentialsDialog({ email, csrfToken, onClose, onSaved, onExpired }: {
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [challenge, setChallenge] = useState<{ id: string; email: string } | null>(null);
+  const [code, setCode] = useState('');
+  const form = useRef<HTMLFormElement>(null);
+
+  async function sendCode(nextEmail: string, currentPassword: string) {
+    const { challengeId } = await request<{ challengeId: string }>('/profile/credentials/email/send', {
+      method: 'POST', csrfToken, body: { email: nextEmail, currentPassword },
+    });
+    setChallenge({ id: challengeId, email: nextEmail });
+    setCode('');
+  }
+
+  async function resend() {
+    if (busy || !form.current || !challenge) return;
+    const fields = new FormData(form.current);
+    setBusy(true); setError('');
+    try {
+      await sendCode(challenge.email, String(fields.get('currentPassword') ?? ''));
+    } catch (failure) { setError(displayError(failure, onExpired)); } finally { setBusy(false); }
+  }
 
   async function changeCredentials(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -185,7 +207,7 @@ function CredentialsDialog({ email, csrfToken, onClose, onSaved, onExpired }: {
     setBusy(true); setError('');
     try {
       await request('/profile/credentials', {
-        method: 'PATCH', csrfToken, body: { currentPassword, ...(nextEmail !== email && { email: nextEmail }), ...(newPassword && { newPassword }) },
+        method: 'PATCH', csrfToken, body: { currentPassword, ...(nextEmail !== email && { email: nextEmail, challengeId: challenge?.id, code }), ...(newPassword && { newPassword }) },
       });
       onSaved();
     } catch (failure) { setError(displayError(failure, onExpired)); } finally { setBusy(false); }
@@ -194,16 +216,24 @@ function CredentialsDialog({ email, csrfToken, onClose, onSaved, onExpired }: {
   return <Dialog title="Đổi email hoặc mật khẩu" busy={busy} onDismiss={onClose}>
     <p className="muted profile-dialog-copy">Sau khi lưu, bạn sẽ cần đăng nhập lại trên các thiết bị đang dùng.</p>
     <ErrorNotice message={error} />
-    <form onSubmit={(event) => void changeCredentials(event)}><fieldset disabled={busy} className="form-stack">
-      <label className="field">Email đăng nhập<input name="email" type="email" autoComplete="username" maxLength={254} defaultValue={email} required /></label>
+    <form ref={form} onSubmit={(event) => void changeCredentials(event)}><fieldset disabled={busy} className="form-stack">
+      <label className="field">Email đăng nhập<input name="email" type="email" autoComplete="username" maxLength={254} defaultValue={email} required onChange={() => { setChallenge(null); setCode(''); }} /></label>
       <label className="field">Mật khẩu hiện tại<input name="currentPassword" type="password" autoComplete="current-password" required maxLength={128} /></label>
       <label className="field">Mật khẩu mới<input name="newPassword" type="password" autoComplete="new-password" minLength={12} maxLength={128}
         onInvalid={(event) => event.currentTarget.setCustomValidity(newPasswordError(event.currentTarget.value, true))}
         onChange={(event) => event.currentTarget.setCustomValidity('')} />
         <span className="field-hint">Dùng ít nhất 12 ký tự nếu đổi mật khẩu.</span></label>
       <label className="field">Nhập lại mật khẩu mới<input name="confirmation" type="password" autoComplete="new-password" maxLength={128} /></label>
+      {challenge && <>
+        <p className="notice" role="status">Mã 6 số được gửi đến {challenge.email} và có hiệu lực 10 phút.</p>
+        <label className="field">Mã xác minh email mới
+          <input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" required value={code}
+            onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} />
+        </label>
+        <button type="button" className="text-button" onClick={() => void resend()}>Gửi lại mã</button>
+      </>}
       <div className="form-actions"><button className="button button-secondary" type="button" onClick={onClose}>Hủy</button>
-        <button className="button button-primary" type="submit">{busy ? 'Đang cập nhật…' : 'Lưu và đăng nhập lại'}</button></div>
+        <button className="button button-primary" type="submit">{busy ? 'Đang xử lý…' : challenge ? 'Xác minh và lưu' : 'Tiếp tục'}</button></div>
     </fieldset></form>
   </Dialog>;
 }

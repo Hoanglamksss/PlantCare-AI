@@ -64,3 +64,5 @@ Các test recurrence cần unit test timezone/DST và tháng ngắn, integration
 - Mục tiêu phục hồi ban đầu là RPO tối đa 24 giờ và RTO tối đa 2 giờ. Đo trên staging từ thời điểm bắt đầu sự cố giả lập đến khi kiểm tra khôi phục thành công. VPS đơn vẫn cần diễn tập khôi phục từ bản sao nằm ngoài VPS.
 
 Tài liệu tham khảo cho ngưỡng đo và cấu hình staging. [Grafana k6](https://grafana.com/docs/k6/latest/using-k6/thresholds/) · [Cloudflare Full (strict)](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/)
+
+[Kịch bản nghiệm thu chat, OTP và ảnh bài viết](../03-kien-truc/nang-cap-chat-otp.md#nghiệm-thu-staging).

@@ -1,3 +1,4 @@
+import { fixtureEmailProof } from './otp-fixture.mjs';
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -27,7 +28,7 @@ async function json(path, status, options) {
 
 async function account() {
   const credentials = { email: `community-${randomUUID()}@example.test`, password: randomBytes(24).toString('base64url') };
-  await request('/api/v1/auth/register', 200, { method: 'POST', body: credentials });
+  await request('/api/v1/auth/register', 200, { method: 'POST', body: { ...credentials, ...fixtureEmailProof(credentials.email) } });
   const response = await request('/api/v1/auth/login', 200, { method: 'POST', body: credentials });
   const cookie = response.headers.getSetCookie().find(value => value.startsWith('plantcare_session='));
   assert.ok(cookie?.includes('HttpOnly'));

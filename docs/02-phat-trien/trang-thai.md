@@ -29,3 +29,18 @@
 1. Điền domain, VPS, R2 và Origin CA theo runbook; triển khai staging rồi nghiệm thu HTTPS, sao lưu/khôi phục và đo tải trước production.
 2. Kiểm tra camera/bàn phím trên điện thoại thật, nhập lịch cũ có mục lỗi và mạng chậm/mất kết nối. API chống trùng đã được kiểm thử; các tình huống trình duyệt cực đoan này chưa nghiệm thu.
 3. Chất lượng AI cần bộ ảnh gán nhãn và đánh giá độc lập; hiện chỉ sàng lọc dấu hiệu và hướng dẫn chăm sóc theo quy tắc.
+
+- 22/11: đã đối chiếu luồng chat và ảnh trong mã, soạn [đề xuất nâng cấp chờ duyệt](../03-kien-truc/de-xuat-nang-cap-ai.md). Cần tái hiện lỗi ảnh trên Vercel; chưa đổi mã, API hay schema.
+- 22/11: bổ sung luồng gửi ảnh, sàng lọc và hỏi tiếp ngay trong chatbot vào đề xuất chờ duyệt. Chưa triển khai.
+
+- 22/11: triển khai chat theo tài khoản, gửi ảnh và hỏi tiếp, kế hoạch chăm sóc theo ngày và OTP email Resend. Đã kiểm tra build và luồng backend bằng PostgreSQL/nhà cung cấp giả lập. Còn cần chạy migration 0012 trên staging, thử gửi mail thật, đo chất lượng tiếng Việt và kiểm tra ảnh hai tài khoản trên Vercel. Bảng xếp hạng bệnh chờ bộ ảnh đánh giá. README đã có link demo ở commit local 8df686b; GitHub chưa nhận do lỗi kết nối. [Cấu hình và nghiệm thu](../03-kien-truc/nang-cap-chat-otp.md).
+
+- 23/11: thêm Gmail API để gửi OTP qua HTTPS từ hộp thư riêng. Build backend và kiểm tra bằng Google/Resend giả lập đã qua. Còn cần cấp Gmail OAuth cho hộp thư gửi trên Render, deploy và thử với một email nhận khác. [Hướng dẫn](../03-kien-truc/nang-cap-chat-otp.md#otp-email-qua-gmail-api).
+
+- 23/11: chuẩn bị chuyển sang plantcare.io.vn. Backend chỉ nhận các origin cấu hình chính xác; mẫu Render giữ cả tên miền mới và bản demo Vercel. Đã build và kiểm tra middleware cùng script bằng mạng giả lập. DNS, HTTPS, đăng nhập và OTP thật chờ tên miền được cấp. [Hướng dẫn chuyển tên miền](../../deploy/plantcare-io-vn.md).
+
+- 23/11: nâng giao diện chat và pipeline tiếng Việt, chọn nguồn theo câu hỏi, đọc lần tưới của chủ tài khoản và giữ đúng ảnh khi hỏi tiếp. Build hai ứng dụng, cấu hình Compose và kịch bản backend với dịch vụ giả lập đã qua. Mô hình thật cần cấu hình trên Render và nghiệm thu cùng upload ảnh; bản online chưa deploy.
+
+- 23/11: cập nhật link www.plantcare.io.vn và tài liệu pipeline đầy đủ. Chat đọc cây chủ động đính kèm, hoạt động gần đây và kết quả ảnh có cùng cây. Đăng ký và đổi email phải xác nhận OTP, giữ đăng nhập cho tài khoản cũ. Build frontend/backend và kiểm tra route với dữ liệu giả lập đã qua. Scripts smoke dùng fixture OTP local; cần chạy migration 0013, smoke với Compose và gửi OTP thật trên staging. [Pipeline, database và nghiệm thu](../03-kien-truc/pipeline-chat-va-anh.md).
+
+- Bổ sung ca smoke cho OTP sai địa chỉ, hết hạn, dùng lại và cho luồng hỏi tiếp từ ảnh của cây đã lưu. Đã kiểm tra cú pháp script và cấu hình Compose. Docker daemon chưa khả dụng ở máy hiện tại để chạy toàn bộ smoke.

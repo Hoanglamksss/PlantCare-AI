@@ -1,3 +1,4 @@
+import { fixtureEmailProof } from './otp-fixture.mjs';
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -40,7 +41,7 @@ async function signIn(credentials) {
 
 async function registerAndLogin(phone, displayName) {
   const credentials = testCredentials();
-  await request('/api/v1/auth/register', 200, { method: 'POST', body: { ...credentials, phone, displayName } });
+  await request('/api/v1/auth/register', 200, { method: 'POST', body: { ...credentials, ...fixtureEmailProof(credentials.email), phone, displayName } });
   return { ...await signIn(credentials), credentials };
 }
 
@@ -61,12 +62,39 @@ const passwordErrors = [
 ];
 for (const { password, code, message } of passwordErrors) {
   const invalidRegistration = await request('/api/v1/auth/register', 400, {
-    method: 'POST', body: { ...testCredentials(), password },
+    method: 'POST', body: { ...testCredentials(), password, challengeId: randomUUID(), code: '123456' },
   });
   const result = await invalidRegistration.json();
   assert.equal(result.code, code);
   assert.equal(result.message, message);
 }
+
+const pendingCredentials = testCredentials();
+await request('/api/v1/auth/register', 400, { method: 'POST', body: pendingCredentials });
+await request('/api/v1/auth/login', 401, { method: 'POST', body: pendingCredentials });
+const registerProof = fixtureEmailProof(pendingCredentials.email);
+await request('/api/v1/auth/register', 400, { method: 'POST', body: {
+  ...pendingCredentials, ...registerProof, code: registerProof.code === '000000' ? '111111' : '000000',
+} });
+await request('/api/v1/auth/login', 401, { method: 'POST', body: pendingCredentials });
+
+const otherCredentials = testCredentials();
+const wrongRecipient = await request('/api/v1/auth/register', 400, {
+  method: 'POST', body: { ...otherCredentials, ...registerProof },
+});
+assert.equal((await wrongRecipient.json()).code, 'EMAIL_CODE_INVALID');
+const expiredCredentials = testCredentials();
+const expiredProof = fixtureEmailProof(expiredCredentials.email, '', { expired: true });
+const expired = await request('/api/v1/auth/register', 400, {
+  method: 'POST', body: { ...expiredCredentials, ...expiredProof },
+});
+assert.equal((await expired.json()).code, 'EMAIL_CODE_INVALID');
+
+await request('/api/v1/auth/register', 200, { method: 'POST', body: { ...pendingCredentials, ...registerProof } });
+const replayedProof = await request('/api/v1/auth/register', 400, {
+  method: 'POST', body: { ...pendingCredentials, ...registerProof },
+});
+assert.equal((await replayedProof.json()).code, 'EMAIL_CODE_INVALID');
 
 const owner = await registerAndLogin('0900 111 222', '  Người trồng thử nghiệm  ');
 const visitor = await registerAndLogin();
@@ -74,8 +102,8 @@ const profilePath = '/api/v1/profile';
 await request(profilePath, 401);
 const initialProfile = await (await request(profilePath, 200, { session: owner })).json();
 assert.deepEqual(initialProfile, { email: owner.credentials.email, displayName: 'Người trồng thử nghiệm', phone: '+84900111222', avatarUrl: null });
-await request('/api/v1/auth/register', 200, {
-  method: 'POST', body: { ...owner.credentials, displayName: 'Tên từ yêu cầu trùng', phone: '0999 999 999' },
+await request('/api/v1/auth/register', 409, {
+  method: 'POST', body: { ...owner.credentials, ...fixtureEmailProof(owner.credentials.email), displayName: 'Tên từ yêu cầu trùng', phone: '0999 999 999' },
 });
 assert.deepEqual(await (await request(profilePath, 200, { session: owner })).json(), initialProfile);
 const profileUpdate = { displayName: 'Người làm vườn', phone: '0912 345 678' };
@@ -170,6 +198,13 @@ for (const [speciesCode, question] of [
 }
 await request('/api/v1/chat', 403, { method: 'POST', session: owner, csrf: false, body: { question: 'Tưới dưa leo thế nào?' } });
 
+const attached = await (await request('/api/v1/chat', 200, {
+  method: 'POST', session: owner, body: { question: 'Tưới thế nào?', plantId: plant.id },
+})).json();
+assert.equal(attached.plantId, plant.id);
+assert.equal(attached.speciesCode, plant.speciesCode);
+await request('/api/v1/chat', 404, { method: 'POST', session: visitor, body: { question: 'Tưới thế nào?', plantId: plant.id } });
+
 const leaf = new Blob([await readFile(new URL('../frontend/src/assets/balcony-tomato.jpg', import.meta.url))], { type: 'image/jpeg' });
 const avatar = new FormData();
 avatar.set('image', leaf, 'avatar.jpg');
@@ -234,6 +269,21 @@ assert.equal(scan?.status, 'completed');
 assert.ok(['healthy', 'uncertain'].includes(scan.outcome) && scan.recommendation);
 assert.ok(scan.careSteps?.length, 'Kết quả cần có việc thực hiện tại nhà');
 assert.ok(Array.isArray(scan.possibleCauses));
+
+const chatPhoto = await (await request('/api/v1/chat', 200, {
+  method: 'POST', session: owner, body: { question: 'Xem ảnh cây này', plantId: plant.id, diagnosisId: scanId },
+})).json();
+assert.equal(chatPhoto.plantId, plant.id);
+assert.equal(chatPhoto.diagnosisId, scanId);
+const chatResult = await (await request(`/api/v1/chat/screening/${scanId}`, 200, { session: owner })).json();
+assert.equal(chatResult.plantId, plant.id);
+assert.deepEqual(chatResult.plan.map(item => item.when), ['Hôm nay', 'Ngày mai', 'Sau 48–72 giờ']);
+await request(`/api/v1/chat/screening/${scanId}`, 404, { session: visitor });
+const tomorrow = await (await request('/api/v1/chat', 200, {
+  method: 'POST', session: owner,
+  body: { question: 'mai lam gi', plantId: plant.id, contextDiagnosisId: scanId },
+})).json();
+assert.match(tomorrow.text, /^Ngày mai:/);
 
 await request(plantPath, 200, { method: 'PATCH', body: { archived: true }, session: owner });
 await request(`${plantPath}/care-logs`, 409, { method: 'POST', body: { activity: 'watering', happenedAt }, session: owner });
@@ -307,14 +357,22 @@ const active = await (await request('/api/v1/plants', 200, { session: owner })).
 const archived = await (await request('/api/v1/plants?archived=true', 200, { session: owner })).json();
 assert.deepEqual(active.items, []);
 assert.equal(archived.items[0].id, plant.id);
+await request('/api/v1/chat', 404, {
+  method: 'POST', session: owner, body: { question: 'Kiểm tra cây', plantId: plant.id },
+});
 const secondary = await signIn(owner.credentials);
 const newCredentials = testCredentials();
-const changeCredentials = (currentPassword, credentials, status) => request(`${profilePath}/credentials`, status, {
-  method: 'PATCH', session: owner, body: { currentPassword, email: credentials.email, newPassword: credentials.password },
+const accountId = (await (await request('/api/v1/auth/me', 200, { session: owner })).json()).user.id;
+const changeCredentials = (currentPassword, credentials, status, proof = {}) => request(`${profilePath}/credentials`, status, {
+  method: 'PATCH', session: owner, body: { currentPassword, email: credentials.email, newPassword: credentials.password, ...proof },
 });
 await changeCredentials(randomBytes(24).toString('base64url'), newCredentials, 403);
-await changeCredentials(owner.credentials.password, visitor.credentials, 409);
-await changeCredentials(owner.credentials.password, newCredentials, 204);
+await changeCredentials(owner.credentials.password, visitor.credentials, 409, fixtureEmailProof(visitor.credentials.email, accountId));
+await changeCredentials(owner.credentials.password, newCredentials, 400);
+const changeProof = fixtureEmailProof(newCredentials.email, accountId);
+await changeCredentials(owner.credentials.password, newCredentials, 400, { ...changeProof, code: changeProof.code === '000000' ? '111111' : '000000' });
+await request('/api/v1/auth/me', 200, { session: owner });
+await changeCredentials(owner.credentials.password, newCredentials, 204, changeProof);
 await request('/api/v1/auth/me', 401, { session: owner });
 await request('/api/v1/auth/me', 401, { session: secondary });
 await request('/api/v1/auth/login', 401, { method: 'POST', body: owner.credentials });

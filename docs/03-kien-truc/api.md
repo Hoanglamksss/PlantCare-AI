@@ -6,7 +6,7 @@ React và Swagger gọi Node.js cùng origin. JSON dùng camelCase, thời gian 
 
 - Đăng ký nhận `email`, `password`, cùng `phone` và `displayName` tùy chọn, rồi gán `user` trên server. Tên hiển thị bỏ khoảng trắng ở đầu/cuối và dài từ 1 đến 80 ký tự. Email mới và email đã dùng nhận cùng phản hồi `200` hướng dẫn thử đăng nhập, với thời gian xử lý tương đương. Đăng ký lại giữ nguyên tài khoản và hồ sơ hiện có. API từ chối trường ngoài schema, kể cả `role`. Đăng nhập sai dùng cùng thông báo lỗi `401` cho email không tồn tại và mật khẩu sai.
 - `POST /auth/login` đặt cookie phiên ngẫu nhiên với `HttpOnly`, `Secure` trên HTTPS, `SameSite=Lax`, `Path=/` và phạm vi host hiện tại. Server lưu bản băm của token và ngày hết hạn. Đăng xuất thu hồi phiên ở server.
-- Server kiểm tra `Origin` của yêu cầu thay đổi dữ liệu từ trình duyệt, bao gồm đăng ký và đăng nhập. Các thao tác sau đăng nhập thêm `X-CSRF-Token` từ `POST /auth/login` hoặc `GET /auth/me`. API kiểm tra token gắn với phiên. Local dùng ngoại lệ cookie phục vụ phát triển, staging kiểm thử hành vi qua HTTPS.
+- Server kiểm tra `Origin` của yêu cầu thay đổi dữ liệu từ trình duyệt, bao gồm đăng ký và đăng nhập. Các thao tác sau đăng nhập thêm `X-CSRF-Token` từ `POST /auth/login` hoặc `GET /auth/me`. API kiểm tra token gắn với phiên. Origin phải khớp chính xác APP_ORIGIN hoặc một mục trong APP_ADDITIONAL_ORIGINS, nếu có. Local dùng ngoại lệ cookie phục vụ phát triển, staging kiểm thử hành vi qua HTTPS.
 - Thiếu phiên trả `401`. Gọi API Admin bằng tài khoản User trả `403`. Tài nguyên riêng sai chủ trả `404` giống trường hợp ID không tồn tại. Admin có quyền quản trị danh mục và xem số liệu tổng hợp. API áp dụng cùng quy tắc chủ sở hữu cho tài nguyên riêng.
 
 ## Điểm cuối
@@ -43,7 +43,12 @@ Mật khẩu mới có độ dài từ 12 đến 128 ký tự. Đăng ký và đ
 | `GET /community/posts/{postId}/comments` · `POST /community/posts/{postId}/comments` | Đọc theo quyền bài; ghi khi bài đang hiển thị | Phân trang từng tầng bằng `parentId`, nhận chữ hoặc tối đa bốn ảnh |
 | `PUT /community/posts/{postId}/comments/{commentId}/like` · `DELETE /community/posts/{postId}/comments/{commentId}` | Thích: thành viên; xóa: tác giả hoặc chủ bài | Nhận `{liked}`, hoặc xóa bình luận cùng toàn bộ nhánh trả lời |
 | `GET /community/posts/{postId}/notes` · `GET /community/posts/{postId}/diagnoses` | Có phiên, cả bài và cây cho phép chia sẻ lịch sử | Lịch sử/ảnh phân trang độc lập, thu hồi ngay khi tắt chia sẻ |
-| `POST /chat` | Có phiên và CSRF | `200` trả `text`, `source`, `photoSuggested` và loài đã xác định từ câu hỏi hoặc `speciesCode` tùy chọn |
+| `GET /chat` | Có phiên | Tối đa 30 lượt đã lưu và trạng thái bật mô hình |
+| `POST /chat` | Có phiên và CSRF | Hỏi đáp, tùy chọn requestId để gửi lại an toàn. diagnosisId đính kèm ảnh đã tải, contextDiagnosisId chọn ảnh cho câu hỏi tiếp nối. Phản hồi có thể có interpretation để hiển thị “Ý bạn là…” và origin để nhận biết mô hình, hướng dẫn hoặc nhật ký |
+| `GET /chat/screening/{id}` | Chủ sở hữu | Trạng thái, dấu hiệu và kế hoạch theo ngày |
+| `GET /auth/email-verification` | Có phiên | Trạng thái xác minh email và cấu hình gửi mã |
+| `POST /auth/email-verification/send` | Có phiên và CSRF | Gửi mã email 6 chữ số theo hạn mức |
+| `POST /auth/email-verification/confirm` | Có phiên và CSRF | Xác minh bằng trường code |
 | `GET /admin/accounts` · `PATCH /admin/accounts/{accountId}` | Admin | Tìm tài khoản, khóa/mở bằng `{disabled}`; khóa thu hồi toàn bộ phiên |
 | `GET /admin/posts` · `PATCH /admin/posts/{postId}` | Admin | Tìm bài và ẩn/hiện bằng `{hidden}`; không xóa nội dung khi ẩn |
 
@@ -115,3 +120,5 @@ Response lịch thêm `id,nextRunAt,timezone`. Bản này cố định `Asia/Ho_
 Thông báo trả `id,title,body,plantId,createdAt,readAt`; `unreadCount` tính toàn tài khoản và không phụ thuộc trang hiện tại. Chuông giao diện đọc từ API bằng polling, không báo đã gửi Web Push. Cây lưu trữ hoặc tài khoản bị khóa không phát sinh lời nhắc trong thời gian đó. Nhập lịch cũ từ trình duyệt dùng `clientId` chống trùng theo tài khoản và chỉ xóa bản local sau khi mọi mục nhập thành công. `clientId` đã bị xóa mềm trả `410`, không tự tạo lại.
 
 Chưa triển khai hoàn thành/bỏ qua task, `care_occurrences`, tự ghi nhật ký từ lịch, preferences, quiet hours, timezone tùy chọn hoặc Browser Push. Không coi thông báo đã đọc là hoàn thành chăm sóc.
+
+**OTP đăng ký và đổi email**: POST /auth/register/send nhận email, trả challengeId. POST /auth/register yêu cầu cả challengeId và code. POST /profile/credentials/email/send cần phiên, CSRF, email mới và currentPassword. PATCH /profile/credentials cần thêm challengeId và code khi đổi email. POST /chat có thể nhận plantId của cây đang theo dõi thuộc tài khoản. Xem [pipeline và quyền](pipeline-chat-va-anh.md).

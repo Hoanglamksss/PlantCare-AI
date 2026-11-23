@@ -2,6 +2,7 @@ export interface Config {
   databaseUrl: string;
   csrfSecret: string;
   appOrigin: string;
+  allowedOrigins: readonly string[];
   host: string;
   port: number;
   trustProxy: boolean;
@@ -46,22 +47,33 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const csrfSecret = env.CSRF_SECRET?.trim() ?? "";
   if (csrfSecret.length < 32) throw new ConfigError("CSRF_SECRET cần ít nhất 32 ký tự.");
 
-  const origin = parseUrl(env.APP_ORIGIN, "APP_ORIGIN");
-  if (!(["http:", "https:"].includes(origin.protocol) && origin.pathname === "/"
-    && !origin.username && !origin.password && !origin.search && !origin.hash)) {
-    throw new ConfigError("APP_ORIGIN phải là origin HTTP hoặc HTTPS của ứng dụng.");
+  function readOrigin(value: string | undefined, name: string) {
+    const url = parseUrl(value, name);
+    if (!(["http:", "https:"].includes(url.protocol) && url.pathname === "/"
+      && !url.hostname.includes("*") && !url.username && !url.password && !url.search && !url.hash)) {
+      throw new ConfigError(`Cấu hình ${name} phải là origin HTTP hoặc HTTPS của ứng dụng.`);
+    }
+    return url;
   }
 
+  const origin = readOrigin(env.APP_ORIGIN, "APP_ORIGIN");
+  const additional = env.APP_ADDITIONAL_ORIGINS?.trim();
+  const origins = [origin, ...(additional
+    ? additional.split(",").map(value => readOrigin(value.trim(), "APP_ADDITIONAL_ORIGINS"))
+    : [])];
   const cookieSecure = flag(env.COOKIE_SECURE, production || origin.protocol === "https:", "COOKIE_SECURE");
-  const local = ["localhost", "127.0.0.1", "[::1]"].includes(origin.hostname);
-  if (production && !local && (origin.protocol !== "https:" || !cookieSecure)) {
-    throw new ConfigError("Môi trường công khai cần APP_ORIGIN HTTPS và COOKIE_SECURE=true.");
+  for (const candidate of origins) {
+    const local = ["localhost", "127.0.0.1", "[::1]"].includes(candidate.hostname);
+    if (production && !local && (candidate.protocol !== "https:" || !cookieSecure)) {
+      throw new ConfigError("Mọi origin công khai cần HTTPS và COOKIE_SECURE=true.");
+    }
   }
 
   return {
     databaseUrl,
     csrfSecret,
     appOrigin: origin.origin,
+    allowedOrigins: [...new Set(origins.map(candidate => candidate.origin))],
     host: env.HOST ?? "127.0.0.1",
     port: positiveInteger(env.PORT, 3000, 65_535, "PORT"),
     trustProxy: flag(env.TRUST_PROXY, false, "TRUST_PROXY"),

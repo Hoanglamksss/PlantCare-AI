@@ -7,6 +7,7 @@ import type { Config } from "../../config.js";
 import { HttpError } from "../../errors.js";
 import { profileDisplayName, profilePhone } from "../profile/fields.js";
 import { accountEmail, currentPassword, newPassword, passwordOptions, passwordValidationError, rejectCredentialRate, withPasswordWork } from "./credentials.js";
+import { accountEmailChallenges, emailProof, invalidEmailProof } from "./account-email-challenge.js";
 import { AttemptWindow } from "./throttle.js";
 
 interface User {
@@ -39,6 +40,7 @@ interface PasswordAccount extends User {
 }
 
 const registration = z.strictObject({
+  ...emailProof,
   email: accountEmail,
   password: newPassword,
   phone: profilePhone.optional(),
@@ -72,6 +74,7 @@ function requireAuth(req: Request): AuthContext {
 
 export function createAuth(pool: Pool, config: Config) {
   const router = Router();
+  const challenges = accountEmailChallenges(pool, config.csrfSecret);
   const cookie: CookieOptions = { httpOnly: true, secure: config.cookieSecure, sameSite: "lax", path: "/" };
   const ipAttempts = new AttemptWindow(40);
   const accountAttempts = new AttemptWindow(8);
@@ -102,8 +105,9 @@ export function createAuth(pool: Pool, config: Config) {
     };
   }
 
+  const allowedOrigins = new Set(config.allowedOrigins);
   const requireOrigin: RequestHandler = (req, _res, next) => {
-    if (!["GET", "HEAD", "OPTIONS"].includes(req.method) && req.get("Origin") !== config.appOrigin) {
+    if (!["GET", "HEAD", "OPTIONS"].includes(req.method) && !allowedOrigins.has(req.get("Origin") ?? "")) {
       throw new HttpError(403, "ORIGIN_FORBIDDEN", "Nguồn gửi yêu cầu không hợp lệ.");
     }
     next();
@@ -140,18 +144,46 @@ export function createAuth(pool: Pool, config: Config) {
     next();
   };
 
+  router.post("/register/send", async (req, res) => {
+    const parsed = z.strictObject({ email: accountEmail }).safeParse(req.body);
+    if (!parsed.success) throw new HttpError(400, "INVALID_INPUT", "Hãy nhập địa chỉ email hợp lệ.");
+    const { email } = parsed.data;
+    const challengeId = await challenges.send({ purpose: "register", subject: "", email }, req.ip ?? "unknown");
+    res.json({ challengeId });
+  });
+
   router.post("/register", withCredentials(registration, async (_req, res, data) => {
-    const passwordHash = await hash(data.password, passwordOptions);
-    await pool.query(
-      `WITH created AS (
-         INSERT INTO accounts (email, mat_khau_bam) VALUES ($1, $2)
-         ON CONFLICT (email) DO NOTHING RETURNING id
-       )
-       INSERT INTO account_profiles (tai_khoan_id, so_dien_thoai, ten_hien_thi)
-       SELECT id, $3::text, $4::text FROM created WHERE $3::text IS NOT NULL OR $4::text IS NOT NULL`,
-      [data.email, passwordHash, data.phone ?? null, data.displayName ?? null],
-    );
-    res.json({ message: "Nếu thông tin hợp lệ, bạn có thể đăng nhập bằng email và mật khẩu vừa nhập." });
+    const client = await pool.connect();
+    let result: "invalid" | "duplicate" | "created";
+    try {
+      await client.query("BEGIN");
+      const accepted = await challenges.consume(client, { purpose: "register", subject: "", email: data.email }, data);
+      if (!accepted) {
+        result = "invalid";
+      } else {
+        const passwordHash = await hash(data.password, passwordOptions);
+        const inserted = await client.query(`
+          INSERT INTO accounts (email, mat_khau_bam, email_xac_minh_luc) VALUES ($1, $2, clock_timestamp())
+          ON CONFLICT (email) DO NOTHING RETURNING id
+        `, [data.email, passwordHash]);
+        const account = inserted.rows[0];
+        result = account ? "created" : "duplicate";
+        if (account && (data.phone || data.displayName)) {
+          await client.query(`
+            INSERT INTO account_profiles (tai_khoan_id, so_dien_thoai, ten_hien_thi) VALUES ($1, $2, $3)
+          `, [account.id, data.phone ?? null, data.displayName ?? null]);
+        }
+      }
+      await client.query("COMMIT");
+    } catch (failure) {
+      await client.query("ROLLBACK").catch(() => {});
+      throw failure;
+    } finally {
+      client.release();
+    }
+    if (result === "invalid") throw invalidEmailProof();
+    if (result === "duplicate") throw new HttpError(409, "EMAIL_IN_USE", "Email này đã được sử dụng.");
+    res.json({ message: "Email đã xác minh. Bạn có thể đăng nhập bằng tài khoản vừa tạo." });
   }));
 
   router.post("/login", withCredentials(login, async (req, res, data) => {

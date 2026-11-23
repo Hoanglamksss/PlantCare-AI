@@ -33,3 +33,5 @@ Backend có thể bổ sung mô hình ngôn ngữ, dùng câu hỏi cùng dữ l
 ## Phạm vi hiện tại
 
 Năm loài được hỗ trợ gồm cà chua, dưa leo, ớt, húng quế và bạc hà. Bước tiếp theo của AI là xây dữ liệu kiểm định, bổ sung mô hình nhận diện bệnh và đo chất lượng trả lời chatbot.
+
+[Luồng chat nhiều lượt, ảnh trong chat và cấu hình mô hình](nang-cap-chat-otp.md) mô tả phần nâng cấp sau bản 0.5.
