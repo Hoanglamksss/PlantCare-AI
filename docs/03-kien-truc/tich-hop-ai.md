@@ -11,7 +11,7 @@
 5. Python `visual-screening-1` dùng Pillow và NumPy để tìm mô xanh, vùng vàng và đốm sẫm quanh lá. Phản hồi có `outcome`, `findings`, `quality` và `modelVersion`. Hiện kết quả thuật toán là `healthy` hoặc `uncertain`.
 6. Worker lưu kết quả vào PostgreSQL. Node kết hợp dấu hiệu với loài đã chọn để trả nguyên nhân có thể và các bước chăm sóc tại nhà. React hiển thị ảnh, kết quả và lịch sử của cây.
 
-`quality` phản ánh chất lượng quan sát theo quy tắc hiện tại. Thuật toán chưa có trọng số học từ dữ liệu để đưa xác suất từng bệnh. [Python](../../inference/screening.py) · [API ảnh và lưu trữ](../../backend/src/modules/media/services.ts) · [Worker](../../backend/src/modules/diagnosis/queue.ts) · [Gợi ý chăm sóc](../../backend/src/modules/diagnosis/guidance.ts)
+`quality` phản ánh chất lượng quan sát theo quy tắc hiện tại. Thuật toán chưa có trọng số học từ dữ liệu để đưa xác suất từng bệnh. [Python](../../backend/inference/screening.py) · [API ảnh và lưu trữ](../../backend/src/modules/media/services.ts) · [Worker](../../backend/src/modules/diagnosis/queue.ts) · [Gợi ý chăm sóc](../../backend/src/modules/diagnosis/guidance.ts)
 
 ## Chatbot đang chạy
 

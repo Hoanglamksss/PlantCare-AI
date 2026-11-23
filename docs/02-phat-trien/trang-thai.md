@@ -13,6 +13,8 @@
 
 ## Bằng chứng
 
+- 23/11: image backend cho Render Free đóng gói Python và chạy sàng lọc trên loopback. Tính năng ảnh online cần biến S3 của bucket Cloudflare R2 riêng tư. [Cấu hình Render và R2](../../deploy/plantcare-io-vn.md#sàng-lọc-ảnh-trên-render)
+
 - 20/11: thêm `backend/start-render.sh` vào image. Trên Render, đặt Docker Command là `/bin/sh /app/start-render.sh` để migration thành công trước khi mở HTTP, tránh phụ thuộc cách Render xử lý dấu nháy. Kiểm tra runtime trên Render cần xem log lần deploy tiếp theo.
 
 - Git local dùng nhánh `main`, remote `origin` trỏ [Hoanglamksss/PlantCare-AI](https://github.com/Hoanglamksss/PlantCare-AI). Bí mật `.secrets/`, `.env*`, bản sao lưu, thư viện và kết quả build được loại khỏi Git.

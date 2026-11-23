@@ -69,7 +69,7 @@ services:
       retries: 12
 
   inference:
-    build: ./inference
+    build: ./backend/inference
     init: true
     security_opt: [no-new-privileges:true]
     networks: [inference]

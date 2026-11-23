@@ -60,7 +60,7 @@ Mã hiện tại có luồng ảnh cho cộng đồng; cần tái hiện trên V
 | Gửi bài thử có ảnh | Trong Network kiểm tra yêu cầu đăng bài có multipart và file; nếu tải ảnh thất bại, hiển thị lỗi rõ. |
 | Đọc lại bài | Kiểm tra phản hồi API có danh sách ảnh. Nếu rỗng, rà luồng lưu tệp và ghi liên kết ảnh–bài. |
 | Mở URL ảnh trong Network | Dùng đường dẫn cùng origin đi qua rewrite /api của Vercel. Với 401/403, kiểm tra cookie và quyền xem; với 404, kiểm tra đường dẫn, bản ghi và tệp; với 5xx, xem log theo request ID và kiểm tra dịch vụ ảnh. |
-| Kiểm tra cấu hình ảnh | Kiểm tra INFERENCE_URL, S3_ENDPOINT, S3_BUCKET và thông tin xác thực S3 trên Render. Kiểm tra backend đọc/ghi đúng bucket và Python nhận được yêu cầu chuẩn hóa. |
+| Kiểm tra cấu hình ảnh | Kiểm tra log Python nội bộ và biến S3 của bucket R2 riêng tư trên Render. Kiểm tra backend đọc/ghi đúng bucket và Python nhận được yêu cầu chuẩn hóa. |
 
 Nghiệm thu bằng hai tài khoản trên Vercel: một người đăng ảnh, người còn lại xem được ảnh sau khi tải lại trang. Sau khi Admin ẩn bài, tài khoản thường cũng mất quyền xem ảnh theo đường dẫn cũ. Ảnh nhật ký riêng vẫn tuân theo quyền chia sẻ riêng.
 

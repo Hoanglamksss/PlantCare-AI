@@ -74,7 +74,7 @@ services:
 
   inference:
     image: ${INFERENCE_IMAGE:-plantcare-inference:production}
-    build: ./inference
+    build: ./backend/inference
     init: true
     security_opt: [no-new-privileges:true]
     networks: [inference]

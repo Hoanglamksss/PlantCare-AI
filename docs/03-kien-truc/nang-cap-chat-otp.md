@@ -7,7 +7,7 @@ Bản demo đang dùng: [PlantCare AI](https://www.plantcare.io.vn/). Cấu hìn
 1. Deploy backend trước để start-render.sh cập nhật PostgreSQL đến migration 0013.
 2. Trên Render, đặt APP_ORIGIN=https://www.plantcare.io.vn cho domain chính. Giữ cookie HTTPS và các cấu hình database hiện có.
 3. Bật mô hình chat bằng CHAT_MODEL_URL (URL đầy đủ của endpoint tương thích Chat Completions), CHAT_MODEL (model ID hỗ trợ JSON mode), CHAT_API_KEY (nếu nhà cung cấp yêu cầu). Khóa chỉ nằm ở backend. Khi chưa cấu hình mô hình, chat trả lời theo quy tắc cũ và trả kế hoạch theo kết quả ảnh khi hỏi đúng ngữ cảnh. Sau khi cấu hình, kiểm thử tiếng Việt trước khi mở rộng cho người dùng.
-4. Cấu hình INFERENCE_URL, S3_ENDPOINT, S3_BUCKET, S3_ACCESS_KEY, S3_SECRET_KEY và S3_REGION phù hợp dịch vụ ảnh. Python phải nhận được POST /prepare và POST /analyze từ Render. Kiểm tra upload và đọc ảnh cộng đồng bằng hai tài khoản trên Vercel.
+4. Trên Render, dùng Python trong cùng container và đặt đủ biến S3 cho bucket R2 riêng tư. Kiểm tra upload và đọc ảnh cộng đồng bằng hai tài khoản trên Vercel. [Cấu hình Render và R2](../../deploy/plantcare-io-vn.md#sàng-lọc-ảnh-trên-render)
 5. Trên Vercel, dùng Root Directory frontend, build npm run build và thư mục xuất dist. Redeploy frontend sau khi backend sẵn sàng.
 
 ## Chat và ảnh

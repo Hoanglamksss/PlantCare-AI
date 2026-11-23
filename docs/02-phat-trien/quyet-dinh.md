@@ -5,7 +5,7 @@
 | D01 | Áp dụng từ M1, mở rộng 0.5 | User mặc định và Admin cấp qua CLI vận hành. Một bảng tài khoản và kiểm tra quyền sở hữu theo từng tài nguyên. Đăng ký/hồ sơ không nhận quyền do client gửi. |
 | D02 | Áp dụng từ M1 | React web responsive, Node.js/TypeScript Modular Monolith, PostgreSQL, Python nội bộ. Tách suy luận khỏi request HTTP qua hàng đợi PostgreSQL. |
 | D03 | Chờ duyệt | Cà chua và dưa leo, mỗi loại hai bệnh đề xuất. Giới hạn phạm vi giúp nhóm thu thập đủ ảnh và kiểm chứng từng lớp. |
-| D04 | MinIO áp dụng, R2 chờ triển khai | Ảnh riêng tư qua Node.js và kho tương thích S3. Local dùng MinIO; R2 cần cấu hình môi trường thật. Hướng dẫn theo bệnh đã duyệt vẫn cần mô hình được kiểm định. |
+| D04 | MinIO local, R2 trên Render | Node.js kiểm tra quyền và tiếp nhận ảnh qua kho riêng tương thích S3. Bản online Render Free chạy Python trong cùng container, bind loopback, và lưu ảnh trong bucket Cloudflare R2 riêng tư sau khi cấp cấu hình. [Cấu hình Render và R2](../../deploy/plantcare-io-vn.md#sàng-lọc-ảnh-trên-render) |
 | D05 | Chờ duyệt | VPS Linux chạy Docker Compose, Cloudflare DNS/proxy và Full (strict), GitHub Actions + GHCR, sao lưu ngoài VPS. |
 | D06 | Chốt theo phản hồi 12/11/2026 | ERD v2 kiểm tra cùng chủ và đúng loài qua khóa ngoại ghép. MVP dùng loài User chọn. Một ảnh có tối đa một chẩn đoán, mỗi chẩn đoán có một job. Thử lại sau `failed` dùng cùng ID, ảnh và job. [Ràng buộc SQL](../04-du-lieu/rang-buoc.md) |
 | D07 | Chốt theo phản hồi 12/11/2026 | Nhật ký quản trị lưu năm trường với danh sách hành động cố định. Phản hồi chẩn đoán chuyển sang giai đoạn 2. |

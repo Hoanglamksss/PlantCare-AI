@@ -1,12 +1,13 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import os
 from threading import BoundedSemaphore
 
 from screening import PhotoError, analyze_photo, prepare_photo
 
 
 MAX_BODY = 8 * 1024 * 1024
-SLOTS = BoundedSemaphore(2)
+SLOTS = BoundedSemaphore(int(os.environ.get("SCREENING_SLOTS", "2")))
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -69,4 +70,6 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    ThreadingHTTPServer(("0.0.0.0", 8000), Handler).serve_forever()
+    host = os.environ.get("SCREENING_BIND_HOST", "0.0.0.0")
+    with ThreadingHTTPServer((host, 8000), Handler) as server:
+        server.serve_forever()

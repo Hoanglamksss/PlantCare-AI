@@ -18,9 +18,10 @@ Khi đã xác minh, trên Render đặt OTP_EMAIL_PROVIDER=resend, OTP_EMAIL_FRO
 
 ## Sàng lọc ảnh trên Render
 
-- Dùng dịch vụ Python ở thư mục `inference/`. Đặt `INFERENCE_URL` thành địa chỉ mà backend truy cập được. Kiểm tra `GET /health`, `POST /prepare` và `POST /analyze` từ cùng môi trường với backend. Dùng kết nối nội bộ hoặc cấu hình bảo vệ nơi tiếp nhận ảnh.
-- Tạo hoặc dùng bucket riêng tư tương thích S3, rồi điền đủ `S3_ENDPOINT`, `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY` và `S3_SECRET_KEY` cùng `INFERENCE_URL` trong **Render → Environment**. Với R2, dùng quyền đọc và ghi giới hạn trên bucket của dự án. [Cấu hình mẫu](render-plantcare.env.example) · [Thiết lập khóa R2](https://developers.cloudflare.com/r2/api/tokens/)
-- Sau khi lưu và deploy, vào chatbot, mở **+ → Đính kèm ảnh lá** và gửi ảnh thử. Kiểm tra thẻ chuyển từ chờ sang hoàn tất và ảnh tải được trong đúng tài khoản. `screeningEnabled: true` từ `GET /api/v1/chat` cho biết backend đã có cấu hình. Log `[screening] reason=not_configured` cho biết upload bị chặn trước bước nhận ảnh do backend chưa bật hai dịch vụ.
+1. Trong Render, dùng Web Service Free chạy Docker với Root Directory `backend`, Dockerfile `./Dockerfile` và Docker Command `/bin/sh /app/start-render.sh`. Image chứa cả Node.js và [Python](../backend/inference/). Script chạy migration, sau đó Node khởi động Python trên `127.0.0.1:8000`. Để trống `INFERENCE_URL` để dùng Python trong cùng container.
+2. Trong Cloudflare R2, tạo bucket riêng tư và giữ tắt cả `r2.dev` lẫn custom domain. Tạo khóa S3 với quyền **Object Read & Write** chỉ cho bucket đó. Ứng dụng kiểm tra quyền qua API trước khi đọc ảnh từ bucket. [Thiết lập khóa R2](https://developers.cloudflare.com/r2/api/tokens/)
+3. Trong **Render → Environment**, nhập cùng lúc `S3_ENDPOINT`, `S3_BUCKET`, `S3_REGION=auto`, `S3_ACCESS_KEY` và `S3_SECRET_KEY`. Endpoint dùng địa chỉ S3 cấp tài khoản trong Cloudflare R2. Sau khi deploy, log `[screening] embedded_python_ready` xác nhận Python sẵn sàng. Log `[screening] storage_not_configured` cho biết cần cấu hình bucket. [Cấu hình mẫu](render-plantcare.env.example)
+4. Đăng nhập bản online, mở **Chatbot → + → Đính kèm ảnh lá** và gửi ảnh thử. Kiểm tra thẻ sàng lọc chuyển từ chờ sang hoàn tất và xem lại ảnh bằng tài khoản có quyền. `screeningEnabled: true` từ `GET /api/v1/chat` chỉ xác nhận backend đã nhận cấu hình. Một lần gửi ảnh thành công mới xác nhận kết nối R2 và Python hoạt động cùng nhau.
 
 ## Kiểm tra trước khi chuyển link GitHub
 

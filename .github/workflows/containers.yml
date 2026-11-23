@@ -55,7 +55,13 @@ jobs:
       packages: write
     strategy:
       matrix:
-        folder: [backend, frontend, inference]
+        include:
+          - folder: backend
+            context: ./backend
+          - folder: frontend
+            context: ./frontend
+          - folder: inference
+            context: ./backend/inference
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -70,7 +76,7 @@ jobs:
       - id: build
         uses: docker/build-push-action@v6
         with:
-          context: './${{ matrix.folder }}'
+          context: '${{ matrix.context }}'
           push: true
           tags: '${{ steps.image.outputs.name }}:${{ github.sha }}'
       - name: Record immutable image reference
