@@ -16,6 +16,12 @@ Gmail API vẫn dùng được sau khi đổi domain web. Muốn gửi từ **ot
 
 Khi đã xác minh, trên Render đặt OTP_EMAIL_PROVIDER=resend, OTP_EMAIL_FROM=PlantCare <otp@mail.plantcare.io.vn> và RESEND_API_KEY. Kiểm tra mã đến một hộp thư nhận thật trước khi bật COMMUNITY_REQUIRE_VERIFIED_EMAIL=true. Có thể giữ cấu hình Gmail hiện có cho tới lúc Resend sẵn sàng. Gửi qua Resend miễn phí trong hạn mức gói.
 
+## Sàng lọc ảnh trên Render
+
+- Dùng dịch vụ Python ở thư mục `inference/`. Đặt `INFERENCE_URL` thành địa chỉ mà backend truy cập được. Kiểm tra `GET /health`, `POST /prepare` và `POST /analyze` từ cùng môi trường với backend. Dùng kết nối nội bộ hoặc cấu hình bảo vệ nơi tiếp nhận ảnh.
+- Tạo hoặc dùng bucket riêng tư tương thích S3, rồi điền đủ `S3_ENDPOINT`, `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY` và `S3_SECRET_KEY` cùng `INFERENCE_URL` trong **Render → Environment**. Với R2, dùng quyền đọc và ghi giới hạn trên bucket của dự án. [Cấu hình mẫu](render-plantcare.env.example) · [Thiết lập khóa R2](https://developers.cloudflare.com/r2/api/tokens/)
+- Sau khi lưu và deploy, vào chatbot, mở **+ → Đính kèm ảnh lá** và gửi ảnh thử. Kiểm tra thẻ chuyển từ chờ sang hoàn tất và ảnh tải được trong đúng tài khoản. `screeningEnabled: true` từ `GET /api/v1/chat` cho biết backend đã có cấu hình. Log `[screening] reason=not_configured` cho biết upload bị chặn trước bước nhận ảnh do backend chưa bật hai dịch vụ.
+
 ## Kiểm tra trước khi chuyển link GitHub
 
 Từ thư mục gốc dự án, chạy một lần với mỗi tên miền đang định dùng:

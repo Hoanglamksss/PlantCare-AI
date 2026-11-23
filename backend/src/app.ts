@@ -101,7 +101,7 @@ export function createApp(config: Config, pool: Pool): Express {
   app.use("/api/v1", createScheduleRouter(pool, auth.requireSession, auth.requireCsrf));
   app.use("/api/v1", createDiagnosisRouter(pool, auth.requireSession, auth.requireCsrf, photoServices, uploadSlots));
   app.use("/api/v1", createJournalRouter(pool, photoServices, auth.requireSession, auth.requireCsrf, uploadSlots));
-  app.use("/api/v1", createChatRouter(pool, auth.requireSession, auth.requireCsrf));
+  app.use("/api/v1", createChatRouter(pool, auth.requireSession, auth.requireCsrf, Boolean(photoServices)));
   if (config.enableSwagger) mountSwagger(app);
 
   app.use((_req, _res, next) => next(new HttpError(404, "NOT_FOUND", "Không tìm thấy tài nguyên.")));

@@ -14,8 +14,8 @@ Bản demo đang dùng: [PlantCare AI](https://www.plantcare.io.vn/). Cấu hìn
 
 - Trợ lý dùng một hội thoại theo tài khoản. Giao diện tải 30 lượt gần nhất. Backend chuẩn hóa tiếng Việt không dấu và các lỗi gõ thường gặp để tìm kiếm, giữ câu gốc trong lịch sử và hiển thị “Ý bạn là…” khi có cách hiểu dự kiến. Đầu ra không chắc chắn yêu cầu người dùng làm rõ.
 - Chào hỏi, hướng dẫn thao tác web, tra lần tưới và hỏi kế hoạch ngày mai từ kết quả ảnh được xử lý bằng dữ liệu của ứng dụng. Nhật ký chỉ đọc của chủ tài khoản và các lượt trả lời bằng nhật ký không gửi sang mô hình.
-- Các câu hỏi chăm cây khác lấy tối đa ba hướng dẫn đã xuất bản liên quan theo từ khóa, ưu tiên đúng loài. Mô hình nhận câu gốc, tối đa sáu lượt gần nhất, các hướng dẫn và kết quả sàng lọc nếu câu hỏi tham chiếu ảnh. Với câu hỏi ngoài phạm vi, bot có thể từ chối. Chỉ backend tạo liên kết thực từ danh sách nguồn.
-- Nếu mô hình không khả dụng và có hướng dẫn phù hợp, bot hiện hướng dẫn đã có. Nếu đã cấu hình mô hình nhưng lỗi và thiếu căn cứ, giao diện hiển thị lỗi và cho thử lại. Mô hình không nhận ảnh gốc.
+- Các câu hỏi chăm cây khác lấy tối đa ba hướng dẫn đã xuất bản liên quan theo từ khóa, ưu tiên đúng loài. Mô hình nhận câu gốc, lịch sử cùng chủ đề trong tối đa sáu lượt gần nhất, các hướng dẫn và kết quả sàng lọc khi tham chiếu ảnh. Backend từ chối các yêu cầu ngoài phạm vi và kiểm tra trường `inScope` của mô hình. Liên kết lấy từ danh sách nguồn phía backend.
+- Khi mô hình không khả dụng, bot dùng hướng dẫn liên quan hoặc hỏi đúng thông tin còn thiếu để tiếp tục. Mô hình không nhận ảnh gốc.
 
 - Gửi ảnh qua POST /api/v1/diagnoses, sau đó liên kết mã lượt sàng lọc với tin nhắn. Giao diện theo dõi trạng thái ngay trong cuộc trò chuyện. Chọn **Hỏi về ảnh này** dưới thẻ nếu có nhiều ảnh. Có thể thử lại lượt ảnh lỗi tạm thời.
 - Python hiện sàng lọc dấu hiệu màu. Thẻ hiện nguyên nhân để đối chiếu và kế hoạch hôm nay, ngày mai, sau 48–72 giờ. Xếp hạng bệnh bằng mô hình cần bộ ảnh gán nhãn và ngưỡng được kiểm định theo từng loài. Chưa có dữ liệu để phát hành phần đó.

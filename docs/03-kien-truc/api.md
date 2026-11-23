@@ -43,8 +43,8 @@ Mật khẩu mới có độ dài từ 12 đến 128 ký tự. Đăng ký và đ
 | `GET /community/posts/{postId}/comments` · `POST /community/posts/{postId}/comments` | Đọc theo quyền bài; ghi khi bài đang hiển thị | Phân trang từng tầng bằng `parentId`, nhận chữ hoặc tối đa bốn ảnh |
 | `PUT /community/posts/{postId}/comments/{commentId}/like` · `DELETE /community/posts/{postId}/comments/{commentId}` | Thích: thành viên; xóa: tác giả hoặc chủ bài | Nhận `{liked}`, hoặc xóa bình luận cùng toàn bộ nhánh trả lời |
 | `GET /community/posts/{postId}/notes` · `GET /community/posts/{postId}/diagnoses` | Có phiên, cả bài và cây cho phép chia sẻ lịch sử | Lịch sử/ảnh phân trang độc lập, thu hồi ngay khi tắt chia sẻ |
-| `GET /chat` | Có phiên | Tối đa 30 lượt đã lưu và trạng thái bật mô hình |
-| `POST /chat` | Có phiên và CSRF | Hỏi đáp, tùy chọn requestId để gửi lại an toàn. diagnosisId đính kèm ảnh đã tải, contextDiagnosisId chọn ảnh cho câu hỏi tiếp nối. Phản hồi có thể có interpretation để hiển thị “Ý bạn là…” và origin để nhận biết mô hình, hướng dẫn hoặc nhật ký |
+| `GET /chat` | Có phiên | Tối đa 30 lượt đã lưu, trạng thái bật mô hình và `screeningEnabled` cho biết backend có cấu hình dịch vụ ảnh |
+| `POST /chat` | Có phiên và CSRF | Hỏi đáp chăm cây và cách dùng PlantCare, hiểu tiếng Việt không dấu, lỗi gõ và câu nối tiếp. Dùng requestId để gửi lại an toàn, diagnosisId để đính kèm ảnh và contextDiagnosisId để hỏi về một ảnh. Có thể trả lời, hỏi thêm hoặc từ chối ngoài phạm vi. Phản hồi có thể có interpretation khi cần xác nhận cách hiểu và origin để nhận biết nguồn trả lời |
 | `GET /chat/screening/{id}` | Chủ sở hữu | Trạng thái, dấu hiệu và kế hoạch theo ngày |
 | `GET /auth/email-verification` | Có phiên | Trạng thái xác minh email và cấu hình gửi mã |
 | `POST /auth/email-verification/send` | Có phiên và CSRF | Gửi mã email 6 chữ số theo hạn mức |

@@ -196,6 +196,28 @@ for (const [speciesCode, question] of [
   const answer = await (await request('/api/v1/chat', 200, { method: 'POST', session: owner, body: { question, speciesCode } })).json();
   assert.ok(answer.text.length > 50 && answer.source?.url.startsWith('https://') && answer.speciesCode === speciesCode, `Thiếu gợi ý có nguồn cho ${speciesCode}`);
 }
+const askCare = async (question) => (await request('/api/v1/chat', 200, {
+  method: 'POST', session: owner, body: { question },
+})).json();
+const chatSettings = await (await request('/api/v1/chat', 200, { session: owner })).json();
+assert.equal(chatSettings.screeningEnabled, true);
+assert.match((await askCare('!!!@@123')).text, /chưa đọc được câu hỏi/i);
+assert.match((await askCare('asdf qwerty')).text, /hỗ trợ bạn chăm cây/i);
+assert.match((await askCare('giúp mình')).text, /chưa rõ bạn/i);
+assert.equal((await askCare('cchua la vagn nen lam j')).speciesCode, 'tomato');
+const followUp = await askCare('o la gia');
+assert.equal(followUp.speciesCode, 'tomato');
+const wet = await askCare('dat van uot');
+assert.equal(wet.speciesCode, 'tomato');
+const switchCrop = await askCare('con dualeo da ra hoa ma ko dau qua');
+assert.equal(switchCrop.speciesCode, 'cucumber');
+if (!chatSettings.modelEnabled) {
+  assert.match(followUp.text, /vài lá già/i);
+  assert.match(wet.text, /đất còn ướt/i);
+  assert.match(switchCrop.text, /hoa cái/i);
+}
+assert.match((await askCare('viet code cay nhi phan')).text, /ngoài phần mình hỗ trợ/i);
+assert.match((await askCare('tks nha')).text, /không có gì/i);
 await request('/api/v1/chat', 403, { method: 'POST', session: owner, csrf: false, body: { question: 'Tưới dưa leo thế nào?' } });
 
 const attached = await (await request('/api/v1/chat', 200, {
@@ -203,6 +225,11 @@ const attached = await (await request('/api/v1/chat', 200, {
 })).json();
 assert.equal(attached.plantId, plant.id);
 assert.equal(attached.speciesCode, plant.speciesCode);
+const overview = await (await request('/api/v1/chat', 200, {
+  method: 'POST', session: owner, body: { question: 'Xem hồ sơ cây này', plantId: plant.id },
+})).json();
+assert.equal(overview.origin, 'journal');
+assert.match(overview.text, /đã mở hồ sơ/i);
 await request('/api/v1/chat', 404, { method: 'POST', session: visitor, body: { question: 'Tưới thế nào?', plantId: plant.id } });
 
 const leaf = new Blob([await readFile(new URL('../frontend/src/assets/balcony-tomato.jpg', import.meta.url))], { type: 'image/jpeg' });

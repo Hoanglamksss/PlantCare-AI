@@ -8,8 +8,10 @@ Trợ lý kết hợp ba nguồn: câu hỏi tiếng Việt, dữ liệu của c
 
 | Yêu cầu | Cách thực hiện |
 | --- | --- |
-| Không dấu, viết tắt, lỗi gõ | Giữ câu gốc, chuẩn hóa bản tìm kiếm, sửa lỗi thường gặp và cho mô hình đọc ngữ cảnh có giới hạn. Hiện “Ý bạn là…?” nếu có cách hiểu dự kiến. Khi mơ hồ, hỏi lại. |
-| Hội thoại tự nhiên | Đáp lời chào, cảm ơn, giải thích cách dùng PlantCare. Từ chối lịch sự khi câu hỏi ngoài phạm vi. |
+| Không dấu, viết tắt, thiếu chữ | Giữ câu gốc trong lịch sử. Hiểu các cách nhập như `cchua la vagn`, `dualeo`, `ko`, `bn` và `ntn`. Mô hình dùng trường “Ý bạn là…?” khi còn khả năng hiểu nhầm. |
+| Hội thoại tự nhiên | Đáp lời chào và cảm ơn, hỏi lại đúng điểm còn thiếu, nối các câu ngắn như “ở lá già” và “đất vẫn ướt” vào cây đang bàn. Khi nhắc loài khác, đổi ngữ cảnh. Trả lời các ý về trồng cây tại nhà hoặc cách dùng PlantCare và từ chối yêu cầu xa phạm vi. |
+| Tin nhắn vô nghĩa hoặc mơ hồ | Với chuỗi ký tự, từ gõ ngẫu nhiên hoặc lời nhờ chưa nêu việc, chatbot đưa ví dụ để người dùng mô tả lại. Các dạng rõ ràng được xử lý trực tiếp ở backend. |
+| Câu hỏi chăm cây | Có hướng dẫn sẵn cho tưới, đất, thay chậu, gieo hạt, phân bón, nắng, ra hoa, sâu hại, dấu hiệu trên lá và thu hoạch. Có thể trả lời nhiều ý chăm cây tách bằng dấu hỏi hoặc xuống dòng. |
 | Hỏi về cây đã lưu | Chọn cây ở ô Đính kèm cây từ Vườn cây. Backend đọc loài, ngày trồng và tối đa năm hoạt động gần đây của đúng cây. Câu hỏi “Lần cuối tưới khi nào?” truy vấn lần tưới thực tế, kể cả khi nằm ngoài năm hoạt động gần đây. |
 | Ảnh ngay trong chat | Tải ảnh theo cây đã chọn, nhận thẻ sàng lọc và kế hoạch theo ngày, chọn đúng ảnh để hỏi tiếp. |
 | Dự đoán từng bệnh | Bản hiện tại khoanh vùng từ dấu hiệu hình ảnh. Chỉ bật xếp hạng bệnh sau khi có mô hình được kiểm định theo từng loài. |
@@ -30,11 +32,11 @@ flowchart TD
   F --> H
 ```
 
-1. React lấy danh sách cây từ GET /api/v1/plants và chỉ gửi plantId khi người dùng đính kèm. POST /api/v1/chat nhận question, requestId và các trường tùy chọn plantId, speciesCode, diagnosisId hoặc contextDiagnosisId. Cookie và X-CSRF-Token bảo vệ thao tác ghi.
+1. Nút **+** trong ô chat cho phép chọn ảnh, loại cây hoặc cây trong Vườn cây. React xác nhận tên cây ngay sau khi chọn. Khi chỉ đính kèm cây rồi bấm Gửi, backend mở hồ sơ được phép truy cập và tóm tắt hoạt động gần nhất. POST /api/v1/chat nhận question, requestId và các trường tùy chọn plantId, speciesCode, diagnosisId hoặc contextDiagnosisId. Cookie và X-CSRF-Token bảo vệ thao tác ghi.
 2. Express lấy accountId từ phiên. Mọi truy vấn cây, nhật ký và ảnh đều lọc theo quyền sở hữu. Cây đã lưu trữ hoặc thuộc tài khoản khác bị từ chối. Nếu người dùng vừa chọn cây vừa đính kèm ảnh, ảnh phải thuộc chính cây đó.
-3. Backend chuẩn hóa câu, phân luồng, đọc tối đa sáu lượt liên quan trong cửa sổ gần nhất và truy xuất tối đa ba hướng dẫn đã xuất bản có nội dung liên quan. Với câu hỏi về lịch sử tưới, dùng SQL và hiển thị giờ Việt Nam. Với câu hỏi về ngày mai theo ảnh, đọc thẳng kế hoạch đã tạo.
-4. Khi cần mô hình, backend gửi câu hỏi, đoạn hội thoại phù hợp, hướng dẫn, kết quả ảnh và dữ liệu có cấu trúc gồm loài, ngày trồng và loại/thời điểm hoạt động gần đây của cây. Dữ liệu hồ sơ riêng như biệt danh, ghi chú tự do và email không được nạp tự động vào đầu vào mô hình. Nội dung người dùng tự gõ có thể được gửi để trả lời câu hỏi. Ảnh gốc được xử lý trong dịch vụ ảnh.
-5. Kiểm tra đầu ra JSON, gắn nguồn bằng ID do backend cấp và lưu lượt chat. Nếu mô hình lỗi mà có hướng dẫn sẵn, hiển thị hướng dẫn; nếu không có căn cứ, giao diện cho thử lại. Cùng requestId và cùng dữ liệu trả lại lượt đã lưu.
+3. Backend chuẩn hóa câu, đọc tối đa sáu lượt gần nhất và lọc theo cây đang đính kèm. Khi người dùng đổi loài, ngữ cảnh cũ dừng ở ranh giới đó. Lượt hỏi tiếp có thể dùng tối đa hai mô tả gần nhất của cùng chủ đề cho hướng dẫn dự phòng. Lịch sử tưới dùng SQL và giờ Việt Nam. Kế hoạch theo ngày của ảnh dùng kết quả đã có.
+4. Với câu hỏi cần diễn giải, backend lấy các hướng dẫn liên quan. Nếu cấu hình mô hình, backend gửi câu hỏi, lịch sử đã lọc, hướng dẫn và dữ liệu cần thiết của cây hoặc kết quả ảnh. Dữ liệu hồ sơ riêng như biệt danh, ghi chú tự do và email không được nạp tự động. Nội dung người dùng tự gõ có thể được gửi để trả lời. Ảnh gốc được xử lý trong dịch vụ ảnh.
+5. Backend từ chối các yêu cầu ngoài phạm vi nhận diện rõ và kiểm tra trường `inScope` khi dùng mô hình. Đầu ra phải đúng JSON và nguồn chỉ gắn theo ID đã cấp. Khi thiếu thông tin hoặc mô hình gián đoạn, trả hướng dẫn phù hợp hoặc hỏi một chi tiết để tiếp tục. Cùng requestId và cùng dữ liệu trả lại lượt đã lưu.
 
 ## Luồng phân tích ảnh và kế hoạch chăm sóc
 

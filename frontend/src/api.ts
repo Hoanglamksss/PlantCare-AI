@@ -66,6 +66,7 @@ export class ApiError extends Error {
     message: string,
     public readonly code?: string,
     public readonly retryAfter?: number,
+    public readonly requestId?: string,
   ) {
     super(message);
   }
@@ -97,14 +98,15 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => null) as { message?: unknown; code?: unknown } | null;
+    const error = await response.json().catch(() => null) as { message?: unknown; code?: unknown; requestId?: unknown } | null;
     const message = response.status < 500 && typeof error?.message === 'string'
       ? error.message
       : 'Dịch vụ đang bận. Vui lòng thử lại sau.';
     const code = typeof error?.code === 'string' ? error.code : undefined;
     const seconds = Number(response.headers.get('Retry-After'));
     const retryAfter = Number.isSafeInteger(seconds) && seconds > 0 ? seconds : undefined;
-    throw new ApiError(response.status, message, code, retryAfter);
+    const requestId = typeof error?.requestId === 'string' ? error.requestId : undefined;
+    throw new ApiError(response.status, message, code, retryAfter, requestId);
   }
 
   if (response.status === 204) return undefined as T;

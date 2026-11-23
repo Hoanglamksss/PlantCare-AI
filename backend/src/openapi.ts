@@ -58,7 +58,7 @@ export const openapi = {
     '/chat': {
       get: {
         operationId: 'listCareChat', tags: ['Chatbot'], summary: 'Mở hội thoại', security: session,
-        responses: { '200': response('Các lượt gần nhất và cấu hình mô hình.', 'CareHistory'), ...authErrors },
+        responses: { '200': response('Các lượt gần nhất và trạng thái cấu hình mô hình, ảnh.', 'CareHistory'), ...authErrors },
       },
       post: {
         operationId: 'askCareChat', tags: ['Chatbot'], summary: 'Hỏi cách chăm cây', security: session,
@@ -190,9 +190,9 @@ export const openapi = {
     schemas: {
       CareQuestion: object({ question: { type: 'string', minLength: 1, maxLength: 600, example: 'Lá cà chua bị đốm nâu thì kiểm tra gì?' },
         speciesCode: { type: 'string', enum: screeningSpecies }, requestId: uuid, diagnosisId: uuid, contextDiagnosisId: uuid, plantId: uuid }, ['question']),
-      CareHistory: object({ modelEnabled: { type: 'boolean' }, items: { type: 'array', items: object({
+      CareHistory: object({ modelEnabled: { type: 'boolean' }, screeningEnabled: { type: 'boolean' }, items: { type: 'array', items: object({
         requestId: uuid, question: { type: 'string' }, diagnosisId: { ...uuid, nullable: true }, plantId: { ...uuid, nullable: true }, reply: schema('CareReply'),
-      }, ['requestId', 'question', 'diagnosisId', 'plantId', 'reply']) } }, ['modelEnabled', 'items']),
+      }, ['requestId', 'question', 'diagnosisId', 'plantId', 'reply']) } }, ['modelEnabled', 'screeningEnabled', 'items']),
       ChatScreening: object({
         id: uuid, plantId: { ...uuid, nullable: true }, status: { type: 'string', enum: ['queued', 'processing', 'completed', 'failed'] }, speciesCode,
         outcome: { type: 'string', nullable: true }, retryable: { type: 'boolean' },

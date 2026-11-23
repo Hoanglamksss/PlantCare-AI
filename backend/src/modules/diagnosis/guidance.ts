@@ -20,6 +20,7 @@ export const careSources = {
   cucumberWilt: { title: 'UMN Extension · Héo vi khuẩn ở cây họ bầu bí', url: `${diseases}/bacterial-wilt` },
   basilDowny: { title: 'UMN Extension · Sương mai ở húng quế', url: `${diseases}/basil-downy-mildew` },
   water: { title: 'UMN Extension · Tưới cây trồng chậu', url: `${garden}/gardening-in-minnesota/fertilizing-and-watering-container-plants` },
+  heat: { title: 'UMN Extension · Ảnh hưởng của nóng lên rau trồng', url: `${garden}/yard-and-garden-problems/how-excessive-heat-affects-the-vegetable-garden` },
   roots: { title: 'University of Maryland Extension · Thối rễ cây trồng chậu', url: 'https://extension.umd.edu/resource/root-rots-indoor-plants' },
   aphids: { title: 'UMN Extension · Rệp trong vườn', url: `${garden}/yard-and-garden-insects/aphids` },
   gardenDiseases: { title: 'UMN Extension · Kiểm soát bệnh cây tại vườn nhà', url: `${garden}/yard-and-garden-problems/managing-plant-diseases-in-the-home-garden` },

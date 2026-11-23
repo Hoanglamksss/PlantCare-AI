@@ -35,16 +35,28 @@ export function siteAnswer(words: string) {
   if (/\b(tao|dat|them|cai|len) lich (tuoi|cham|nhac)/.test(words) || /\blich tuoi o dau\b/.test(words)) {
     return 'Vào Đặt lịch, chọn cây, hoạt động Tưới nước, ngày giờ và chu kỳ nếu cần, rồi lưu. Nhắc lịch xuất hiện ở biểu tượng chuông trong ứng dụng.';
   }
+  if (/\b(doi|cap nhat|thay doi) (dia chi )?email\b/.test(words)) {
+    return 'Vào Hồ sơ và chọn Đổi email. Nhập địa chỉ mới, mật khẩu hiện tại và làm theo chỉ dẫn ở bước xác minh.';
+  }
+  if (/\b(doi|sua|thay) (mat khau|mk)\b/.test(words)) {
+    return 'Vào Hồ sơ → Đổi mật khẩu. Nhập mật khẩu hiện tại và mật khẩu mới, rồi đăng nhập lại sau khi lưu.';
+  }
   if (/\b(xac minh email|ma otp|gui ma xac minh)\b/.test(words)) {
     return 'Vào Hồ sơ → Xác minh email → Gửi mã. Kiểm tra hộp thư đến hoặc thư rác, rồi nhập mã 6 số trong 10 phút.';
   }
   if (/\b(dang bai|chia se cay|chia se anh)\b/.test(words)) {
     return 'Vào Cộng đồng để viết bài về một cây trong vườn của bạn. Chọn cây, nhập nội dung hoặc thêm ảnh, rồi bấm Đăng bài.';
   }
+  if (/\b(them|tao) (cay|ho so cay) (?:moi |vao )?(?:trong |vao )?vuon cay\b|\bho so cay o dau\b/.test(words)) {
+    return 'Mở Vườn cây, chọn bắt đầu theo dõi hoặc thêm cây, rồi chọn loài và đặt tên cho cây. Bạn có thể mở hồ sơ đó để ghi nhật ký hoặc đặt lịch.';
+  }
+  if (/\b(gui|dinh kem|tai) anh (?:la )?(?:o dau|the nao|vao chat|trong chat)\b/.test(words)) {
+    return 'Mở nút + trong ô chat, chọn loại cây hoặc đính kèm hồ sơ cây, rồi chọn Đính kèm ảnh lá để gửi. Sau khi có kết quả, chọn “Hỏi về ảnh này” để hỏi tiếp.';
+  }
   if (/\b(xem lich su|xem lai) (kiem tra|chan doan|anh|sang loc)/.test(words)) {
     return 'Mở mục Chẩn đoán để xem các lần đã kiểm tra. Nếu gửi ảnh trong Trợ lý AI, bạn cũng có thể chọn “Hỏi về ảnh này” ngay trong chat.';
   }
-  if (/\b(plantcare (la gi|lam duoc gi|co (gi|chuc nang gi))|web (nay )?(co (gi|chuc nang gi)|lam duoc gi))\b/.test(words)) {
+  if (/\b(plantcare (la gi|lam duoc gi|co (gi|chuc nang gi))|web (nay )?(co (gi|chuc nang gi)|lam duoc gi)|(?:ban|bot) (?:co the )?(?:la ai|giup (?:duoc )?gi|lam (?:duoc )?gi))\b/.test(words)) {
     return 'PlantCare giúp bạn quản lý vườn cây, lưu nhật ký, đặt lịch chăm sóc, sàng lọc dấu hiệu qua ảnh lá và chia sẻ với cộng đồng.';
   }
   return null;

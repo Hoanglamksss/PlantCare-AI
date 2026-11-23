@@ -182,7 +182,10 @@ export function createDiagnosisRouter(
   });
 
   router.post('/diagnoses', requireSession, requireCsrf, async (req, res) => {
-    if (!services) throw notAvailable();
+    if (!services) {
+      console.warn(`[screening] reason=not_configured request_id=${res.locals.requestId}`);
+      throw notAvailable();
+    }
     if (!req.is('multipart/form-data')) throw new HttpError(415, 'UNSUPPORTED_MEDIA_TYPE', 'Gửi ảnh qua multipart/form-data.');
     const owner = req.auth!.user.id;
     const key = parse(idempotencySchema, req.get('Idempotency-Key'));
