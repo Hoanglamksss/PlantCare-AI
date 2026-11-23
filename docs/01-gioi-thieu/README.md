@@ -184,7 +184,7 @@ sequenceDiagram
                     Q->>D: Lưu kết quả và completed
                 else Lỗi dịch vụ tạm thời
                     P-->>Q: Lỗi hoặc timeout
-                    Q->>D: Đặt queued để thử lại; hết lượt thì chuyển failed
+                    Q->>D: Đặt queued để thử lại hoặc chuyển failed khi hết lượt
                 end
             end
         and React theo dõi trạng thái
@@ -220,7 +220,7 @@ sequenceDiagram
         P-->>A: Ảnh đã chuẩn hóa
         A->>S: Ghi ảnh vào bucket riêng tư
     end
-    A->>D: BEGIN; kiểm tra lại chủ cây; ghi note và liên kết ảnh; COMMIT
+    A->>D: BEGIN, kiểm tra lại chủ cây, lưu ghi chú và liên kết ảnh, rồi COMMIT
     A-->>W: 201 Created + ghi chú/đường dẫn ảnh riêng tư
     W-->>U: Hiển thị ghi chú trong dòng thời gian cây
 ```
