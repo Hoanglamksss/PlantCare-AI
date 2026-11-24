@@ -1,5 +1,7 @@
 # Nhật ký quyết định
 
+- 24/11: Khi người dùng đính kèm một cây đang theo dõi, chatbot đọc ghi chú quan sát và lần sàng lọc đã hoàn tất của chính cây đó để trả lời. Phản hồi về dữ liệu riêng được tạo trong backend. Khi bỏ cây, yêu cầu xem nhật ký hoặc lần tưới sẽ đề nghị đính kèm lại.
+
 | Mã | Trạng thái | Quyết định và lý do |
 | --- | --- | --- |
 | D01 | Áp dụng từ M1, mở rộng 0.5 | User mặc định và Admin cấp qua CLI vận hành. Một bảng tài khoản và kiểm tra quyền sở hữu theo từng tài nguyên. Đăng ký/hồ sơ không nhận quyền do client gửi. |

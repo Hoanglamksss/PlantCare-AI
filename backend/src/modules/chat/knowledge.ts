@@ -63,31 +63,14 @@ export function siteAnswer(words: string) {
 }
 
 const localTime = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' });
-export async function latestWatering(pool: Pool, owner: string, crop: ScreeningSpecies | undefined, words: string, plantId?: string) {
-  const { rows } = await pool.query<{ id: string; name: string }>(`
-    SELECT p.id, p.biet_danh AS name
-    FROM user_plants p JOIN plant_species s ON s.id = p.loai_cay_id
-    WHERE p.tai_khoan_id = $1 AND p.luu_tru_luc IS NULL AND ($2::text IS NULL OR s.ma = $2)
-      AND ($3::uuid IS NULL OR p.id = $3)
-    ORDER BY p.id
-  `, [owner, crop ?? null, plantId ?? null]);
-  if (!rows.length) return 'Mình chưa thấy cây phù hợp trong Vườn cây của bạn.';
-  const byName = rows.filter((plant) => {
-    const name = normalize(plant.name);
-    return name.length >= 2 && ` ${words} `.includes(` ${name} `);
-  });
-  const candidates = byName.length ? byName : rows;
-  if (candidates.length !== 1) {
-    return `Bạn muốn hỏi cây nào? Hãy gõ tên cây trong Vườn cây, ví dụ ${candidates.slice(0, 3).map((plant) => `“${plant.name}”`).join(', ')}.`;
-  }
-  const plant = candidates[0]!;
+export async function latestWatering(pool: Pool, owner: string, plant: { id: string; nickname: string }) {
   const { rows: [entry] } = await pool.query<{ at: Date }>(`
     SELECT l.xay_ra_luc AS at FROM care_logs l
     JOIN user_plants p ON p.id = l.cay_nguoi_dung_id AND p.tai_khoan_id = l.tai_khoan_id
     WHERE p.id = $2 AND p.tai_khoan_id = $1 AND p.luu_tru_luc IS NULL
-      AND l.hoat_dong = 'watering' AND NOT l.la_ghi_chu
+      AND l.hoat_dong = 'watering' AND NOT l.la_ghi_chu AND l.xay_ra_luc <= now()
     ORDER BY l.xay_ra_luc DESC, l.id DESC LIMIT 1
   `, [owner, plant.id]);
-  return entry ? `Lần tưới gần nhất được ghi cho “${plant.name}” là ${localTime.format(entry.at)} (giờ Việt Nam).`
-    : `Nhật ký của “${plant.name}” chưa có lần tưới nào.`;
+  return entry ? `Lần tưới gần nhất được ghi cho “${plant.nickname}” là ${localTime.format(entry.at)} (giờ Việt Nam).`
+    : `Nhật ký của “${plant.nickname}” chưa có lần tưới nào.`;
 }

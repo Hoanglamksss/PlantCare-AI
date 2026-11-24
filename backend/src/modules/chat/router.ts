@@ -7,7 +7,8 @@ import { screeningSpecies, type ScreeningSpecies } from '../diagnosis/guidance.j
 import { AttemptWindow } from '../auth/throttle.js';
 import { answerSubquestions, careAnswer, clarifyAnswer, compareCare, reply, scopeReply, unclearReply, type Reply } from './care-replies.js';
 import { configuredChatModel } from './model.js';
-import { describeChatPlant, readChatPlant } from './plant-context.js';
+import { readChatPlant } from './plant-context.js';
+import { aboutOwnPlant, answerAboutPlant, plantQuestionKind } from './plant-replies.js';
 import { loadChatScreening } from './screening.js';
 import { greetingAnswer, unclearInput, understandQuestion } from './language.js';
 import { findGuides, latestWatering, siteAnswer } from './knowledge.js';
@@ -87,7 +88,7 @@ export function createChatRouter(pool: Pool, requireSession: RequestHandler, req
       if (!contextId && aboutImage && !outside && !navigation) {
         const { rows: [photoTurn] } = await pool.query<{ diagnosisId: string }>(`
           SELECT diagnosis_id AS "diagnosisId" FROM chat_turns
-          WHERE tai_khoan_id = $1 AND diagnosis_id IS NOT NULL AND ($2::uuid IS NULL OR plant_id = $2)
+          WHERE tai_khoan_id = $1 AND diagnosis_id IS NOT NULL AND plant_id IS NOT DISTINCT FROM $2::uuid
             AND ($3::text IS NULL OR answer->>'speciesCode' = $3)
           ORDER BY sequence DESC LIMIT 1
         `, [owner, plantId ?? null, chosenCrop ?? null]);
@@ -120,27 +121,28 @@ export function createChatRouter(pool: Pool, requireSession: RequestHandler, req
           .slice(-2).map(({ intent }) => intent.words).join(' ')
         : '';
 
-      let result: Reply;
       const watering = /\b(lan cuoi|lan gan nhat|da tuoi|tuoi (?:lan|hom|ngay) nao)\b/.test(words) && /\btuoi\b/.test(words);
       const futureWatering = /\b(nen|can|se|sap|lich)\b/.test(words);
-      const wateringFollowUp = previous?.reply.origin === 'journal' && previous.reply.text.startsWith('Bạn muốn hỏi cây nào?') && !greeting && !navigation
-        && !outside && !aboutSite && words.length <= 80 && !careAnswer(words, crop)
-        && !/\b(benh|la|dom|vang|heo|anh|lam|lich|bao gio)\b/.test(words);
+      const personalized = plant && !diagnosisId && !contextDiagnosisId && !aboutImage && !outside && !greeting && !unclear && !navigation && !watering
+        ? await answerAboutPlant(pool, owner, plant, question, previousIntent?.words ?? '') : undefined;
 
+      let result: Reply;
       if (outside) {
         result = scopeReply();
       } else if (diagnosisId) {
         result = reply('Mình đã nhận ảnh. Xem kết quả bên dưới, hoặc hỏi tiếp về dấu hiệu và việc cần làm.');
       } else if (unclear) {
         result = unclearReply(unclear);
-      } else if (plant && /\bxem ho so cay nay\b/.test(words)) {
-        result = { ...reply(describeChatPlant(plant)), origin: 'journal' };
       } else if (greeting) {
         result = reply(greeting);
       } else if (navigation) {
         result = reply(navigation);
-      } else if ((watering && !futureWatering) || wateringFollowUp) {
-        result = { ...reply(await latestWatering(pool, owner, crop, words, plantId)), origin: 'journal' };
+      } else if (watering && !futureWatering && plant) {
+        result = { ...reply(await latestWatering(pool, owner, plant)), origin: 'journal' };
+      } else if (personalized) {
+        result = personalized;
+      } else if (!plant && !contextDiagnosisId && !aboutImage && ((watering && !futureWatering) || (aboutOwnPlant(words) && plantQuestionKind(words)))) {
+        result = reply('Bạn bấm dấu + rồi chọn “Đính kèm cây từ Vườn cây” để mình xem đúng hồ sơ. Bạn cũng có thể kể loại cây và điều đang thấy để mình hướng dẫn trước.');
       } else if (aboutImage && !screening) {
         result = reply('Mình chưa tìm thấy ảnh lá phù hợp với câu hỏi này. Bạn có thể gửi ảnh mới hoặc bấm “Hỏi về ảnh này” dưới kết quả đã có.', null, true);
       } else if (screening && (aboutImage || contextDiagnosisId) && screening.status !== 'completed') {

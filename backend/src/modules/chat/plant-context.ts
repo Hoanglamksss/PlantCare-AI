@@ -2,10 +2,12 @@ import type { Pool } from 'pg';
 import { HttpError } from '../../errors.js';
 import { screeningSpecies } from '../diagnosis/guidance.js';
 import { careActivities } from '../journal/records.js';
+import { scheduleTimezone } from '../schedules/recurrence.js';
 
 type Activity = (typeof careActivities)[number];
 const labels: Record<Activity, string> = { watering: 'tưới nước', fertilizing: 'bón phân', observation: 'quan sát cây' };
-const localDate = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' });
+export const localDate = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeZone: scheduleTimezone });
+export const localDay = new Intl.DateTimeFormat('sv-SE', { dateStyle: 'short', timeZone: scheduleTimezone });
 
 export async function readChatPlant(pool: Pool, owner: string, id: string) {
   const { rows: [plant] } = await pool.query<{ id: string; nickname: string; speciesCode: string; plantedOn: string | null }>(`
@@ -20,15 +22,31 @@ export async function readChatPlant(pool: Pool, owner: string, id: string) {
     SELECT l.hoat_dong AS activity, l.xay_ra_luc AS at
     FROM care_logs l JOIN user_plants p ON p.id = l.cay_nguoi_dung_id AND p.tai_khoan_id = l.tai_khoan_id
     WHERE p.id = $1 AND p.tai_khoan_id = $2 AND p.luu_tru_luc IS NULL AND NOT l.la_ghi_chu
+      AND l.xay_ra_luc <= now()
     ORDER BY l.xay_ra_luc DESC, l.id DESC LIMIT 5
   `, [id, owner]);
   return { ...plant, speciesCode, activities };
 }
 
-export function describeChatPlant(plant: NonNullable<Awaited<ReturnType<typeof readChatPlant>>>) {
+export type ChatPlant = Awaited<ReturnType<typeof readChatPlant>>;
+
+export async function readPlantObservation(pool: Pool, owner: string, plantId: string) {
+  const { rows: [observation] } = await pool.query<{ note: string; at: Date }>(`
+    SELECT left(btrim(l.ghi_chu), 300) AS note, l.xay_ra_luc AS at
+    FROM care_logs l JOIN user_plants p ON p.id = l.cay_nguoi_dung_id AND p.tai_khoan_id = l.tai_khoan_id
+    WHERE p.id = $1 AND p.tai_khoan_id = $2 AND p.luu_tru_luc IS NULL
+      AND l.hoat_dong = 'observation' AND btrim(l.ghi_chu) <> '' AND l.xay_ra_luc <= now()
+    ORDER BY l.xay_ra_luc DESC, l.id DESC LIMIT 1
+  `, [plantId, owner]);
+  return observation;
+}
+
+export function describeActivity(plant: ChatPlant, today: string) {
+  const activities = plant.activities.filter(({ at }) => localDay.format(at) === today);
+  if (activities.length) {
+    const recorded = [...new Set(activities.map(({ activity }) => labels[activity]))];
+    return `Hôm nay nhật ký có ghi ${recorded.join(', ')}.`;
+  }
   const last = plant.activities[0];
-  const history = last
-    ? `Hoạt động gần nhất đã ghi là ${labels[last.activity]} ngày ${localDate.format(last.at)}.`
-    : 'Hồ sơ chưa có hoạt động chăm sóc nào.';
-  return `Mình đã mở hồ sơ “${plant.nickname}”. ${history} Bạn muốn xem lần tưới gần nhất hay mô tả một dấu hiệu đang thấy trên cây?`;
+  return last ? `Hoạt động gần nhất là ${labels[last.activity]} ngày ${localDate.format(last.at)}.` : '';
 }

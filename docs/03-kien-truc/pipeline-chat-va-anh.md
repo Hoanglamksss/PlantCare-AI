@@ -12,7 +12,7 @@ Trợ lý kết hợp ba nguồn: câu hỏi tiếng Việt, dữ liệu của c
 | Hội thoại tự nhiên | Đáp lời chào và cảm ơn, hỏi lại đúng điểm còn thiếu, nối các câu ngắn như “ở lá già” và “đất vẫn ướt” vào cây đang bàn. Khi nhắc loài khác, đổi ngữ cảnh. Trả lời các ý về trồng cây tại nhà hoặc cách dùng PlantCare và từ chối yêu cầu xa phạm vi. |
 | Tin nhắn vô nghĩa hoặc mơ hồ | Với chuỗi ký tự, từ gõ ngẫu nhiên hoặc lời nhờ chưa nêu việc, chatbot đưa ví dụ để người dùng mô tả lại. Các dạng rõ ràng được xử lý trực tiếp ở backend. |
 | Câu hỏi chăm cây | Có hướng dẫn sẵn cho tưới, đất, thay chậu, gieo hạt, phân bón, nắng, ra hoa, sâu hại, dấu hiệu trên lá và thu hoạch. Có thể trả lời nhiều ý chăm cây tách bằng dấu hỏi hoặc xuống dòng. |
-| Hỏi về cây đã lưu | Chọn cây ở ô Đính kèm cây từ Vườn cây. Backend đọc loài, ngày trồng và tối đa năm hoạt động gần đây của đúng cây. Câu hỏi “Lần cuối tưới khi nào?” truy vấn lần tưới thực tế, kể cả khi nằm ngoài năm hoạt động gần đây. |
+| Hỏi về cây đã lưu | Khi đính kèm một cây đang theo dõi, chatbot đọc ngày trồng, các hoạt động gần nhất, ghi chú quan sát mới nhất và kết quả sàng lọc hoàn tất gần nhất của đúng cây. Câu trả lời nêu ngày của bằng chứng. Khi hỏi thời điểm ra quả, chatbot dùng loài, ngày trồng và giai đoạn người dùng hoặc nhật ký mô tả. Khi thiếu dữ liệu, chatbot hỏi về lá, nụ, hoa hoặc quả non. |
 | Ảnh ngay trong chat | Tải ảnh theo cây đã chọn, nhận thẻ sàng lọc và kế hoạch theo ngày, chọn đúng ảnh để hỏi tiếp. |
 | Dự đoán từng bệnh | Bản hiện tại khoanh vùng từ dấu hiệu hình ảnh. Chỉ bật xếp hạng bệnh sau khi có mô hình được kiểm định theo từng loài. |
 

@@ -11,6 +11,7 @@ type Reply = { text: string; source: { title: string; url: string } | null; phot
 type Turn = { requestId: string; question: string; reply: Reply | null; diagnosisId: string | null; plantId: string | null };
 type Submission = { id: string; question: string; file: File | null; crop: CropCode | ''; focus: string | null; plantId: string | null; diagnosisId?: string };
 const suggestions = ['Lá cà chua vàng, đất vẫn ướt', 'Dưa leo có hoa mà chưa đậu quả', 'Tạo lịch tưới ở đâu?'];
+const personalSuggestions = ['Hôm nay cây của mình thế nào?', 'Cây có dấu hiệu bệnh gì?'];
 const plantQuestion = 'Xem hồ sơ cây này và gợi ý mình nên theo dõi điều gì tiếp theo.';
 
 export function Chat({ session, onExpired, initialCrop }: { session: Session; onExpired: () => void; initialCrop?: CropCode }) {
@@ -41,6 +42,8 @@ export function Chat({ session, onExpired, initialCrop }: { session: Session; on
   const attachmentsId = useId();
   const selectedCrop = plant && isCropCode(plant.speciesCode) ? plant.speciesCode : crop;
   const availablePlants = garden.page?.items.filter(item => isCropCode(item.speciesCode)) ?? [];
+  const prompts = plant && !focus ? [...personalSuggestions, selectedCrop === 'basil' || selectedCrop === 'mint'
+    ? 'Khi nào mình có thể thu hoạch lá?' : 'Bao giờ cây ra quả?'] : !messages.length ? suggestions : [];
 
   useEffect(() => () => active.current?.abort(), []);
   useEffect(() => {
@@ -165,7 +168,7 @@ export function Chat({ session, onExpired, initialCrop }: { session: Session; on
       <span className="pc-chat-avatar" aria-hidden="true"><Leaf size={26} /></span>
       <div><h1 id="chat-title">Trợ lý PlantCare</h1><p>Hỏi về chăm cây hoặc gửi ảnh lá</p></div>
     </header>
-    <section className="pc-chat-conversation" aria-label="Trò chuyện" data-empty={!messages.length}>
+    <section className="pc-chat-conversation" aria-label="Trò chuyện" data-suggestions={prompts.length > 0}>
       <div className="pc-chat-history" role="log" aria-label="Tin nhắn" aria-live="polite" ref={history}>
         {!messages.length && <div className="pc-chat-welcome">
           <span className="pc-chat-welcome-icon"><MessageCircle size={24} aria-hidden="true" /></span>
@@ -199,8 +202,8 @@ export function Chat({ session, onExpired, initialCrop }: { session: Session; on
           </div>
         ))}
       </div>
-      {!messages.length && <aside className="pc-chat-suggestions" aria-label="Câu hỏi gợi ý">
-        <div>{suggestions.map((prompt) => <button type="button" key={prompt} disabled={!ready || busy || !!file} onClick={() => void ask(prompt)}>{prompt}<ChevronRight size={16} aria-hidden="true" /></button>)}</div>
+      {prompts.length > 0 && <aside className="pc-chat-suggestions" aria-label="Câu hỏi gợi ý">
+        <div>{prompts.map((prompt) => <button type="button" key={prompt} disabled={!ready || busy || !!file} onClick={() => void ask(prompt)}>{prompt}<ChevronRight size={16} aria-hidden="true" /></button>)}</div>
       </aside>}
       <form className="pc-chat-form" onSubmit={submit}>
         <ErrorNotice message={error} />

@@ -13,6 +13,8 @@
 
 ## Bằng chứng
 
+- 24/11: Đã bổ sung câu trả lời theo cây đính kèm cho tình trạng hôm nay, triệu chứng, cách chăm, thời điểm ra quả và thu hoạch. Kết quả cũ hiển thị kèm ngày. [Luồng chatbot](../03-kien-truc/pipeline-chat-va-anh.md#luồng-chatbot)
+
 - 23/11: image backend cho Render Free đóng gói Python và chạy sàng lọc trên loopback. Tính năng ảnh online cần biến S3 của bucket Cloudflare R2 riêng tư. [Cấu hình Render và R2](../../deploy/plantcare-io-vn.md#sàng-lọc-ảnh-trên-render)
 
 - 20/11: thêm `backend/start-render.sh` vào image. Trên Render, đặt Docker Command là `/bin/sh /app/start-render.sh` để migration thành công trước khi mở HTTP, tránh phụ thuộc cách Render xử lý dấu nháy. Kiểm tra runtime trên Render cần xem log lần deploy tiếp theo.

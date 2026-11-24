@@ -28,6 +28,9 @@ const corrections: ReadonlyArray<[RegExp, string]> = [
   [/\b(dc|duocj)\b/g, 'duoc'],
   [/\b(bn|bnh|bnhieu)\b/g, 'bao nhieu'],
   [/\bntn\b/g, 'the nao'],
+  [/\b(hnay|hnayj|homnay)\b/g, 'hom nay'],
+  [/\b(bgio|bjo|baogio|bao (?:giwof|giof|jo))\b/g, 'bao gio'],
+  [/\bra (?:quaa|qau|traii)\b/g, 'ra qua'],
   [/\b(tks|thks|thanks)\b/g, 'cam on'],
 ];
 

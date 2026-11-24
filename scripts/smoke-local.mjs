@@ -230,6 +230,21 @@ const overview = await (await request('/api/v1/chat', 200, {
 })).json();
 assert.equal(overview.origin, 'journal');
 assert.match(overview.text, /đã mở hồ sơ/i);
+const askPlant = async (question) => (await request('/api/v1/chat', 200, {
+  method: 'POST', session: owner, body: { question, plantId: plant.id },
+})).json();
+const statusToday = await askPlant('hom nay cay cua t the nao');
+assert.equal(statusToday.origin, 'journal');
+assert.ok(statusToday.text.includes(updated.nickname));
+assert.match(statusToday.text, /tưới nước/u);
+const fruit = await askPlant('cay cua tao bao giwof ra qua');
+assert.ok(fruit.text.includes(updated.nickname));
+assert.match(fruit.text, /chưa có ngày trồng/u);
+const flowers = await askPlant('đã có hoa rồi');
+assert.match(flowers.text, /hoa tàn/u);
+const detached = await askCare('hom nay cay cua t the nao');
+assert.match(detached.text, /Đính kèm cây/u);
+assert.ok(!detached.text.includes(updated.nickname));
 await request('/api/v1/chat', 404, { method: 'POST', session: visitor, body: { question: 'Tưới thế nào?', plantId: plant.id } });
 
 const leaf = new Blob([await readFile(new URL('../frontend/src/assets/balcony-tomato.jpg', import.meta.url))], { type: 'image/jpeg' });
@@ -304,6 +319,10 @@ assert.equal(chatPhoto.plantId, plant.id);
 assert.equal(chatPhoto.diagnosisId, scanId);
 const chatResult = await (await request(`/api/v1/chat/screening/${scanId}`, 200, { session: owner })).json();
 assert.equal(chatResult.plantId, plant.id);
+const health = await askPlant('Cây của mình bị bệnh gì, xử lý thế nào?');
+assert.equal(health.origin, 'journal');
+assert.ok(health.text.includes(updated.nickname));
+assert.match(health.text, /ảnh|Ảnh/u);
 assert.deepEqual(chatResult.plan.map(item => item.when), ['Hôm nay', 'Ngày mai', 'Sau 48–72 giờ']);
 await request(`/api/v1/chat/screening/${scanId}`, 404, { session: visitor });
 const tomorrow = await (await request('/api/v1/chat', 200, {
