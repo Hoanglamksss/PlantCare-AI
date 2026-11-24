@@ -13,7 +13,10 @@ const harvestDays = { tomato: '60–75', cucumber: '30–46', chili: '72–90' }
 const fruitTiming = /\b(bao gio|khi nao|luc nao|chung nao|bao lau|bao nhieu (?:ngay|tuan)|may (?:ngay|tuan)|sap)\b/;
 const yields = /\b(ra (?:hoa|trai|qua)|(?:co|dau|hai) (?:trai|qua)|thu hoach|cat la)\b/;
 const symptoms = /\b(heo|dom(?: nau| den)?|cham nau|moc (?:trang|xam|suong)|suong mai|phan trang|thoi (?:re|goc)|rep|gi sat|than thu|la (?:xoan|quan|thung)|sau an)\b/;
-const hasSymptom = (words: string) => symptoms.test(words) || yellowLeaves.test(words);
+function hasSymptom(words: string) {
+  const present = words.replace(/\b(?:da het|het|khong con|khong bi|khong thay) (?:bi )?(?:heo|dom nau|rep|vang la|la vang)\b/g, '');
+  return symptoms.test(present) || yellowLeaves.test(present);
+}
 export const aboutOwnPlant = (words: string) => /\bcay (?:cua )?(?:toi|minh|tao|t|em|nha toi)\b/.test(words);
 
 function fruitStage(description: string) {
@@ -41,6 +44,11 @@ export function plantQuestionKind(words: string, previousWords = '') {
 
 type Observation = Awaited<ReturnType<typeof readPlantObservation>>;
 type Scan = Awaited<ReturnType<typeof loadLatestPlantScreening>>;
+
+function describeScan(scan: NonNullable<Scan>) {
+  return scan.findings.length ? scan.findings.map(finding => finding.label).join('. ') + '.'
+    : scan.guidance?.recommendation ?? '';
+}
 
 function journalReply(text: string, source: Reply['source'] = null, photoSuggested = false): Reply {
   return { ...reply(text, source, photoSuggested), origin: 'journal' };
@@ -98,7 +106,7 @@ function healthReply(plant: ChatPlant, words: string, previousWords: string, obs
     const causes = scan.guidance.possibleCauses.map(({ label }) => label.toLowerCase()).slice(0, 2);
     const possibilities = causes.length ? ` Nếu dấu hiệu vẫn còn, hãy đối chiếu với ${causes.join(' hoặc ')}.` : '';
     const followUp = causes.length ? 'Hôm nay vết có lan sang lá mới không?' : 'Hôm nay bạn thấy dấu hiệu gì khác trên cây?';
-    return journalReply(`Theo ảnh của “${plant.nickname}” gửi ngày ${localDate.format(scan.uploadedAt)}, ${scan.guidance.recommendation.charAt(0).toLowerCase()}${scan.guidance.recommendation.slice(1)}${possibilities} ${scan.guidance.careSteps[0] ?? ''} ${followUp}`, careSources[plant.speciesCode], true);
+    return journalReply(`Mình xem lại kết quả ảnh của “${plant.nickname}” gửi ngày ${localDate.format(scan.uploadedAt)}. ${describeScan(scan)}${possibilities} ${scan.guidance.careSteps[0] ?? ''} ${followUp}`, careSources[plant.speciesCode], true);
   }
   if (plantQuestionKind(words) === 'care') {
     const general = careAnswer('cham soc', plant.speciesCode);
@@ -128,7 +136,7 @@ export async function answerAboutPlant(pool: Pool, owner: string, plant: ChatPla
 
     const activity = describeActivity(plant, today);
     const note = observation ? `Nhật ký ngày ${localDate.format(observation.at)} ghi “${observation.note}”.` : '';
-    const result = scan?.guidance ? `Ảnh gửi ngày ${localDate.format(scan.uploadedAt)}: ${scan.guidance.recommendation}` : '';
+    const result = scan?.guidance ? `Ảnh gửi ngày ${localDate.format(scan.uploadedAt)} ghi nhận: ${describeScan(scan)}` : '';
     const hasToday = [observation?.at, scan?.uploadedAt].some(at => at && localDay.format(at) === today);
     const current = hasToday ? 'Bạn thấy cây thay đổi gì kể từ lần ghi nhận đó?'
       : 'Mình chưa có ghi nhận sức khỏe hôm nay. Bạn thấy lá, ngọn hoặc quả có gì khác lần trước không?';
